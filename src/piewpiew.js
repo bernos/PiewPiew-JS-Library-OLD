@@ -8,17 +8,24 @@ var PiewPiew = (function() {
   /**
    * Extends one object by adding properties from another object
    * 
-   * @param {Object} base
+   * @param {Object} object1
    *  The object to extend
-   * @param {Object} extension
+   * @param {Object} object2
    *  The extension object
+   * @param {Object} objectN
+   *  Another extension object
    * @return {Object}
    *  The extended object
    */
-  var extend = function(base, extension) {
-    for(var i in extension) {
-      base[i] = extension[i];
+  var extend = function() {
+    var base = arguments[0] || {};
+    
+    for (var arg = 1; arg < arguments.length; arg++) {
+      for(var i in arguments[arg]) {
+        base[i] = arguments[arg][i];
+      }  
     }
+    
     return base;
   }
 
@@ -33,13 +40,12 @@ var PiewPiew = (function() {
       id : "View" + (idSequence++)
     };
     
-    return {
-      __init__: function(spec) {
-        extend(this, spec);
+    return extend({
+      __init__: function() {
         return this;
       }
       
-    }.__init__(extend(defaults, spec));
+    }, defaults, spec).__init__();
   };
 
   /**
