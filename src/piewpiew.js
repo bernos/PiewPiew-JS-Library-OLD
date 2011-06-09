@@ -1,6 +1,11 @@
 var PiewPiew = (function() {
   
   /**
+   * Internal sequence used for default ID property values
+   */
+  var idSequence = 1;
+  
+  /**
    * Extends one object by adding properties from another object
    * 
    * @param {Object} base
@@ -10,27 +15,38 @@ var PiewPiew = (function() {
    * @return {Object}
    *  The extended object
    */
-  var __extend__ = function(base, extension) {
+  var extend = function(base, extension) {
     for(var i in extension) {
       base[i] = extension[i];
     }
     return base;
   }
 
-
+  /**
+   * The view object
+   */
   var View = function(spec) {
-
+    /**
+     * Default View parameters
+     */
+    var defaults = {
+      id : "View" + (idSequence++)
+    };
+    
     return {
       __init__: function(spec) {
-        __extend__(this, spec);
+        extend(this, spec);
         return this;
       }
       
-    }.__init__(spec);
+    }.__init__(extend(defaults, spec));
   };
 
+  /**
+   * Return the PiewPiew module
+   */
   return {
-    extend: __extend__,
+    extend: extend,
     View: View
   };
 }());
