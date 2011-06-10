@@ -30,22 +30,62 @@ var PiewPiew = (function() {
   }
 
   /**
-   * The view object
+   * Creates a View instance
+   * 
+   * @param {Object} spec
+   *  An object containing attributes and functions to extend the View instance
+   *  that will be created
+   * @return {PiewPiew.View}
+   *  A View object
    */
   var View = function(spec) {
     /**
      * Default View parameters
      */
     var defaults = {
-      id : "View" + (idSequence++)
+           id: "View" + (idSequence++),
+      tagname: "div"
     };
     
+    /**
+     * Extend the base View object with the defaults and spec if provided, then
+     * return it.
+     */
     return extend({
+      /**
+       * Internal initialiser. This gets called when the View is first created
+       * We are mainly concerned with setting up an required params that have
+       * not been defined in the default or spec objects, calling our 
+       * overridable init() function, and returning a reference to ourself
+       */
       __init__: function() {
+        
+        if (!this.el) {
+          this.el = document.createElement(this.tagname);
+          this.el.setAttribute("id", this.id);
+        }
+        
         return this;
+      },
+      
+      /**
+       * Initialise the View. Extended Views should provide their own 
+       * implementation. It is a good idea to return a reference to ourself here
+       * to allow for method chaining.
+       */
+      init: function() {
+        return this;
+      },
+      
+      /**
+       * Render the view. Generally this will involve setting the innerHTML of
+       * our el. Again, it's handy to return a reference to this.
+       */
+      render: function() {
+        return this;  
       }
       
-    }, defaults, spec).__init__();
+    }, defaults, spec || {}).__init__();
   };
 
   /**
@@ -53,13 +93,18 @@ var PiewPiew = (function() {
    */
   return {
     extend: extend,
-    View: View
+      View: View
   };
 }());
 
 var MyViewClass = function(spec) {
   var view = PiewPiew.View(PiewPiew.extend({
-    type:"MyViewClass"
+    type:"MyViewClass",
+    
+    render: function() {
+      this.el.innerHTML = "HELLO WORLD";
+      return this;
+    }
   }, spec));
 
   return view;
