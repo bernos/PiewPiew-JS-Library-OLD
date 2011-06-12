@@ -12,6 +12,11 @@ var PiewPiew = (function() {
    * Default value to use for locale if one is not provided
    */
   var _defaultLocale = 'defaultLocale';
+
+  /**
+   * Internal storage for StringBundle
+   */
+  var _strings = {};
   
   /**
    * Extends one object by adding properties from another object
@@ -52,10 +57,37 @@ var PiewPiew = (function() {
       method.apply(obj, arguments);
     };
   }; 
+
+  /**
+   * Parses a template string with the provided context. By default the PiewPiew
+   * library uses the Mustache templating library. Other templating libraries 
+   * can easily be supported by overriding PiewPiew.parseTemplate
+   *
+   * @param {string} template
+   *  The template string to parse
+   * @param {object} context
+   *  A context object containing variables and helper functions to use when
+   *  parsing the template
+   * @return {string}
+   *  The generated template output
+   */
+   var parseTemplate = function(template, context) {
+     return Mustache.to_html(template, context);
+   }
   
+  /*****************************************************************************
+   * The StringBundle is a useful place to store all strings and messages that
+   * your application will use. Bundles can be stored in external .json files
+   * and loaded at runtime using the StringBundle.load() function. The 
+   * StringBundle can also handle multiple locales.
+   *
+   * StringBundle also supports template strings using the templating library
+   * of your choice. By default we use the Mustache templating library, but this
+   * can easily be overriden by implementing an alternative version of
+   * PiewPiew.parseTemplate(template,context)
+   ****************************************************************************/
   var StringBundle = (function(){
-    var _strings = {};
-    
+        
     return {
       /**
        * Add strings to the StringBundle
@@ -84,30 +116,58 @@ var PiewPiew = (function() {
        * 
        * @param {string} key
        *  Key of the string to retrieve
+       * @param {object} context
+       *  A context object containing variables to be used in cases where the
+       *  requested string is a template string
        * @param {string} defaultValue
        *  Default value to be returned if no string is found
        * @return {string}
        *  Either the requested string, or the default provided
        */
-      getString: function(key, defaultValue) {
-        if (_strings[PiewPiew.locale][key]) {
-          return _strings[PiewPiew.locale][key];
+      getString: function(key, context, defaultValue) {
+        if (_strings[PiewPiew.locale] && _strings[PiewPiew.locale][key]) {
+          return PiewPiew.parseTemplate(
+            _strings[PiewPiew.locale][key], 
+            context
+          );
         }
         
         if (defaultValue) {
-          return defaultValue;
+          return PiewPiew.parseTemplate(defaultValue, context);
         }
         
         return key;
+      },
+
+      /**
+       * Loads a string bundle from the given URL. String bundles are simple
+       * JSON
+       * 
+       * @param {string} url
+       * @param {function} callback
+       * @param {string} locale
+       */
+      load: function(url, callback, locale) {
+        var that = this;
+
+        $.getJSON(url, function(data) {
+          console.log(data);
+          that.addStrings(data, locale);
+          if (callback) {
+            callback();
+          }
+        });
       }
     }
   }());
   
-  /**
+  /*****************************************************************************
    * Creates a context object ready for rendering. TemplateContexts provide data
    * and helper functions to templates. New helper functions can be added by
    * calling PiewPiew.TemplateContext.addHelpers()
-   */
+   *
+   * @constructor
+   ****************************************************************************/
   var TemplateContext = (function() {
     var helpers = {
       /**
@@ -115,15 +175,11 @@ var PiewPiew = (function() {
        */
       s:function() {
         return function(key, render) {
-/**
-          var strings = PMQuizStrings;
-
-          if (strings[key]) {
-            return render(strings[key]);
+          if (_strings[PiewPiew.locale] && _strings[PiewPiew.locale][key]) {
+            return render(_strings[PiewPiew.locale][key]);
           }
-
-          return 'No copy defined for  ' + key;
-          */
+          
+          return key;
         }
       }
     };
@@ -150,14 +206,21 @@ var PiewPiew = (function() {
    * @constructor
    */
   var View = function(spec) {
+
+    /**
+     * Tracks whether we've loaded an external template for the view
+     */
+    var _templateLoaded = false;
+
     /**
      * Default View parameters
      */
     var defaults = {
-           id: "View" + (idSequence++),
-      tagname: "div",
-      classes: [],
-       events: {}
+      id:       "View" + (idSequence++),
+      tagname:  "div",
+      template: "",
+      classes:  [],
+      events:   {}
     };
     
     /**
@@ -182,7 +245,10 @@ var PiewPiew = (function() {
         for(var eventName in view.events[selector]) {
           var handler = view.events[selector][eventName];
           if (typeof handler == 'string' && typeof view[handler] == 'function') {
-            view.events[selector][eventName] = PiewPiew.createDelegate(view, view[handler]);
+            view.events[selector][eventName] = PiewPiew.createDelegate(
+              view, 
+              view[handler]
+            );
           }
         }
         $(view.el).delegate(selector, view.events[selector]);    
@@ -213,7 +279,53 @@ var PiewPiew = (function() {
        * our el. Again, it's handy to return a reference to this.
        */
       render: function() {
+        if (this.templateUrl && !_templateLoaded) {
+          this.loadExternalTemplate(this.templateUrl);
+        } else {
+          this.el.innerHTML = PiewPiew.parseTemplate(
+            this.template, 
+            PiewPiew.TemplateContext(this.getTemplateContext())
+          );
+        }
+
+        if (typeof this.template == "string") {
+          this.el.innerHTML = PiewPiew.parseTemplate(
+            this.template, 
+            PiewPiew.TemplateContext(this.getTemplateContext())
+          );
+        } else if (typeof this.template == "function") {
+          this.template();
+        }        
+
         return this;  
+      },
+
+      /**
+       * Return a context object to be rendered by our template. This function
+       * should be overridden when creating custom views. The object returned
+       * here will be merged with any registered helpers via a call to 
+       * PiewPiew.TemplateContext()
+       *
+       * @return {object}
+       */
+      getTemplateContext: function() {
+        return {};
+      },
+
+      loadExternalTemplate: function(url) {
+        var that = this;
+
+        $.ajax(url, {
+          dataType:'html',
+          error:function(jqXHR, textStatus, errorThrown) {
+            _templateLoaded = true;
+          },
+          success: function(data) {
+            _templateLoaded = true;
+            that.template = data;
+            that.render();    
+          }
+        });        
       }
       
     }, defaults, spec || {}));
@@ -223,48 +335,60 @@ var PiewPiew = (function() {
    * Return the PiewPiew module
    */
   return {
-              extend: extend,
-      createDelegate: createDelegate,
-              locale: _defaultLocale,
-        StringBundle: StringBundle,
-     TemplateContext: TemplateContext,
-                View: View
+    extend:           extend,
+    createDelegate:   createDelegate,
+    locale:           _defaultLocale,
+    parseTemplate:    parseTemplate,
+    StringBundle:     StringBundle,
+    TemplateContext:  TemplateContext,
+    View:             View
   };
 }());
 
 
 
-var MyViewClass = function(spec) {
-  var defaults = {
-    classes:['MyViewClass']
-  };
-  
-  var view = {
-    type:"MyViewClass",
-    
-    render: function() {
-      this.el.innerHTML = "HELLO WORLD <a class='button' href='#'>click</a>";
-      return this;
-    },
-    
+var ExampleView = function(spec) {
+  var _count = 0;
+
+  return PiewPiew.View(PiewPiew.extend({
+   
+    templateUrl: 'ExampleView.html',
+
     events: {
-      'a.button':{
-        'click': 'handleButtonClick'
+      '#increment':{
+        click:'increment'
+      },
+      '#decrement':{
+        click:'decrement'
       }
     },
-    
-    handleButtonClick: function(e) {
-      console.log("click", e);
+
+    increment: function(e) {
+      _count++;
+      this.render();
+      e.preventDefault();
+    },
+
+    decrement: function(e) {
+      _count--;
+      this.render();
+      e.preventDefault();
+    },
+
+    getTemplateContext: function() {
+      return {
+        count:_count
+      }
     }
-  };
 
-  return PiewPiew.View(PiewPiew.extend(view, defaults, spec));
+  }), spec);
 }
 
-var MyViewSubClass = function(spec) {
-  var view = MyViewClass(PiewPiew.extend({
-    subProp:"awesome"
-  }, spec));
+// Test out the StringBundle
 
-  return view;
-}
+PiewPiew.StringBundle.addStrings({
+  "mysample.title": "This is the title - {{name}}",
+  "mysample.body":  "This is the <strong>body</strong> here"
+});
+
+console.log(Mustache.to_html("Here is a {{#s}}mysample.title{{/s}}", PiewPiew.TemplateContext({name:"Tony"})));
