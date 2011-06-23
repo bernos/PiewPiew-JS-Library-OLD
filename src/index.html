@@ -1,8 +1,144 @@
 <!doctype html>
 <head>
+<script type="text/javascript" src="https://www.google.com/jsapi?key=ABQIAAAAY-Lo7xQQjw2KtaKDgwLbFBShyhCcQbTnWyZZb_B2QMXxZCh9kxTQY6MXPrS0KhZmYBqjlgEVQ18rHg"></script>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
-<script type="text/javascript" src="mustache.js"></script>
-<script type="text/javascript" src="piewpiew.js"></script>
+<script type="text/javascript" src="js/mustache.js"></script>
+<script type="text/javascript" src="js/piewpiew.js"></script>
+<script type="text/javascript">
+
+var myModel = PiewPiew.Model();
+var myOtherModel = PiewPiew.Model();
+
+myModel.bind(PiewPiew.Model.events.CHANGE, function(model, changes) {
+  console.log("Model changes", changes);  
+});
+
+myModel.set({
+  name: "Brendan",
+  age: 32
+});
+
+
+
+var FeedView = PiewPiew.View.extend({
+  id: "FeedView",
+  template: "#FeedViewTemplate"
+});
+
+
+
+var ListView = PiewPiew.View.extend({
+  render: function() {
+    this.renderTemplate();
+    var that = this;
+    $(this.get("items", [])).each(function(index, item){
+      console.log(arguments);
+      that.appendItem(item);
+    });
+  },
+
+  appendItem: function(item) {
+    console.log(item);
+    $(".items", this.el).append(ListView().set({item:item}).render().el);
+  }
+});
+
+var ListItemView = PiewPiew.View.extend({
+  template: "#FeedItemTemplate"
+});
+
+
+
+
+google.setOnLoadCallback(function() {
+  var feed = new google.feeds.Feed("http://www.engadget.com/rss.xml");
+
+  feed.load(function(result) {
+    console.log(result);
+    if (!result.error) {
+      var theFeedView = FeedView({
+        el: $('#feed'),
+        template: "#FeedViewTemplate"
+      });
+      theFeedView.set({entries:result.feed.entries}).render();
+      //$('#feed').html(theFeedView.set({entries:result.feed.entries}).render().el);
+    }
+  });
+});
+
+//google.load("feeds", "1");
+
+// A view with a simple string literal template
+var view1 = PiewPiew.View({
+  template: "Hello world!"
+});
+
+// A view with a template function
+var view2 = PiewPiew.View({
+  template: function() {
+    return "Hello world from a template function";
+  }
+});
+
+// A view with a template from the DOM
+var view3 = PiewPiew.View({
+  templateSelector: "#ExampleTemplate"
+});
+
+// Finally a view with an external template
+var view4 = PiewPiew.View({
+  templateUrl: "ExampleView.html",
+  
+  attributes: {
+    count: 0  
+  },
+
+  handlers: {
+    "click button.increment" : 'increment',
+    "click button.decrement" : 'decrement'
+  },
+
+  increment: function(e) {
+    this.set({count: this.get("count", 0) + 1});
+    this.trigger("increment", this.get("count"));
+    e.preventDefault();
+  },
+
+  decrement: function(e) {
+    this.set({count: this.get("count", 0) - 1});
+    this.trigger("decrement", this.get("count"));
+    e.preventDefault();
+  }
+});
+
+$(function() {
+  document.body.appendChild(view1.set({count:32}).el);  
+  document.body.appendChild(view2.set({count:32}).el);  
+  document.body.appendChild(view3.set({count:32}).el);  
+  document.body.appendChild(view4.set({count:32}).el);  
+});
+
+</script>
+
+<script id="ExampleTemplate" type="text/html">
+  <h2>Hello world</h2>
+</script>
+
+<script id="FeedViewTemplate" type="text/html">
+  <h2>Feed</h2>
+  <div class="items"></div>
+</script>
+
+<script id="FeedItemTemplate" type="text/html">
+    <div class="entry">
+      <h2>{{title}}</h2>
+      <div class="author">{{author}}</div>
+      <div class="content">{{contentSnippet}}</div>
+      <a href="{{link}}" target="_blank">More...</a>
+    </div>
+</script>
+
 </head>
 <body>
+<div id="feed"></div>
 </body>
