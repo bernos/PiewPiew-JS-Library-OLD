@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/!svn/ver/707/puremvc-js/trunk/build/tools/jsdoc-toolkit
+END
+changes.txt
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/!svn/ver/707/puremvc-js/trunk/build/tools/jsdoc-toolkit/changes.txt
+END
+jsrun.sh
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/!svn/ver/707/puremvc-js/trunk/build/tools/jsdoc-toolkit/jsrun.sh
+END
+README.txt
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/!svn/ver/707/puremvc-js/trunk/build/tools/jsdoc-toolkit/README.txt
+END
+jsrun.jar
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/!svn/ver/707/puremvc-js/trunk/build/tools/jsdoc-toolkit/jsrun.jar
+END
+jsdebug.jar
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/!svn/ver/707/puremvc-js/trunk/build/tools/jsdoc-toolkit/jsdebug.jar
+END

@@ -1,0 +1,4 @@
+{
+  "mysample.title": "This is the title - {{name}}",
+  "mysample.body":  "This is the <strong>body</strong> here"
+}

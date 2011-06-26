@@ -132,6 +132,11 @@ Now, update the previous example code to match the code below:
 Adding data to our templates
 ----------------------------
 
+Template helpers
+----------------
+
+Can be unique to a view, or common to all views...
+
 Templates are relatively useless without
 
 StringBundle

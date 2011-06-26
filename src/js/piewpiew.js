@@ -4,11 +4,6 @@
 var PiewPiew = (function(module) {
   
   /**
-   * Internal sequence used for default ID property values
-   */
-  var idSequence = 1;
-  
-  /**
    * Default value to use for locale if one is not provided
    */
   var _defaultLocale = 'defaultLocale';
@@ -17,11 +12,6 @@ var PiewPiew = (function(module) {
    * Internal storage for StringBundle
    */
   var _strings = {};
-
-  /**
-   * Internal storage for cached templates
-   */
-  var _templateCache = {};
   
   /**
    * Extends one object by adding properties from another object
@@ -37,7 +27,7 @@ var PiewPiew = (function(module) {
    * @return {Object}
    *  The extended object
    */
-  var extend = function(obj) {
+  module.extend = function(obj) {
     var extensions = Array.prototype.slice.call(arguments, 1);
 
     for (var i = 0; i < extensions.length; i++) {
@@ -56,7 +46,7 @@ var PiewPiew = (function(module) {
    * @param {object} obj
    * @param {function} method
    */
-  var createDelegate = function(obj, method) {
+  module.createDelegate = function(obj, method) {
     return function() {
       method.apply(obj, arguments);
     };
@@ -75,7 +65,7 @@ var PiewPiew = (function(module) {
    * @return {string}
    *  The generated template output
    */
-  var parseTemplate = function(template, context) {
+  module.parseTemplate = function(template, context) {
     return Mustache.to_html(template, context);
   };
 
@@ -83,7 +73,7 @@ var PiewPiew = (function(module) {
    * Creates an EventDispatcher object that can be mixed into any other object
    * using the PiewPiew.extend() method
    ****************************************************************************/
-  var EventDispatcher = function() {
+  module.EventDispatcher = function() {
     var _handlers = {};
          
     return {
@@ -126,11 +116,11 @@ var PiewPiew = (function(module) {
   /*****************************************************************************
    * Creates a "Watchable" object that can be mixed into any other object using
    * the PiewPiew.extend() method. Watchable object provide access to internal
-   * attributes via get() and set() methods. The changeEvent param can be used to 
-   * determine the type of event that should be triggered when a call to the 
+   * attributes via get() and set() methods. The changeEvent param can be used 
+   * to determine the type of event that should be triggered when a call to the 
    * set() method results in an attribute change
    ****************************************************************************/
-  var Watchable = function(attributes, changeEvent) {
+  module.Watchable = function(attributes, changeEvent) {
     return {
       /**
        * Gets an attribute value from the view
@@ -185,7 +175,7 @@ var PiewPiew = (function(module) {
    * can easily be overriden by implementing an alternative version of
    * PiewPiew.parseTemplate(template,context)
    ****************************************************************************/
-  var StringBundle = (function(){
+  module.StringBundle = (function(){
         
     return {
       /**
@@ -267,7 +257,7 @@ var PiewPiew = (function(module) {
    *
    * @constructor
    ****************************************************************************/
-  var TemplateContext = (function() {
+  module.TemplateContext = (function() {
     var helpers = {
       /**
        * Helper function for retrieving strings from the string bundle
@@ -294,361 +284,145 @@ var PiewPiew = (function(module) {
     return templateContext;
   }());
   
-  /*****************************************************************************
-   * Creates a Model instance
-   ****************************************************************************/
-  var Model = function(spec) {
-    var _attributes = {};
+  
 
-    function _initModel(model) {
-      // The model may have been created with custom attributes. If this is the
-      // case these attributes need to be passed to model.set()
-      if (model.attributes) {
-        model.set(model.attributes);
-        model.attributes = null;
-      }
+  module.List = function(items) {
+    var _items = (items || []).slice(0);
 
-      return model;
-    }
+    return extend({
+      length: 0,
 
-    var model = extend({           
-    }, EventDispatcher(), Watchable(_attributes, PiewPiew.Model.events.CHANGE));
+      getItems: function() {
+        return _items;
+      },
 
-    return _initModel(model);
-  };
+      getItemAt: function(index) {
+        return _items[index];
+      },
 
-  Model.extend = function(spec) {
-    return function(options) {
-      return PiewPiew.Model(PiewPiew.extend({}, spec, spec.defaults || {}, options));
-    }
-  };
+      addItem: function(item) {
+        _items.push(item);
+        this.length = _items.length;
+        this.trigger(PiewPiew.List.events.ITEM_ADDED, this, item);
+        return this;
+      },
 
-  Model.events = {
-    CHANGE: "PiewPiew.model.events:CHANGE"
-  };
+      addItemAt: function(item, index) {
+        _items.splice(index, 0, item);
+        this.length = _items.length;
+        this.trigger(PiewPiew.List.events.ITEM_ADDED, this, item);
+        return this;
+      },
 
-  /*****************************************************************************
-   * Creates a View instance
-   * 
-   * @param {Object} spec
-   *  An object containing attributes and functions to extend the View instance
-   *  that will be created
-   * @return {PiewPiew.View}
-   *  A View object
-   * @constructor
-   ****************************************************************************/
-  var View = function(spec) {
+      removeItem: function(item) {
+        var i = this.indexOf(item);
 
-    /**
-     * Tracks whether our template is currently being loaded.
-     */
-    var _templateLoading = false;
-
-    /**
-     * Tracks whether we've loaded an external template for the view
-     */
-    var _templateLoaded = false;
-
-    /**
-     * Internal storage for our template text. This could come from parsing a 
-     * DOM element, from an external file, or a literal String
-     */
-    var _template = null;
-
-    /**
-     * Storage for our view's attributes
-     */
-    var _attributes = {};
-   
-    /**
-     * Internal initialiser. This gets called when the View is first created
-     * We are mainly concerned with setting up any required params that have
-     * not been defined in the default or spec objects, calling our 
-     * overridable init() function, and returning a reference to ourself
-     */
-    var _initView = function(view) {
-      // Set up the root DOM element for the view
-      if (!view.el) {
-        view.el = document.createElement(view.tagname);
-        view.el.setAttribute('id', view.id);
-        if (view.classes.length > 0) {
-          view.el.setAttribute('class', view.classes.join(' '));
+        if (i > -1) {
+          _items.splice(i, 1);
+          this.length = _items.length;
+          this.trigger(PiewPiew.List.events.ITEM_REMOVED, this, item);
+          return item;
         }
-      } 
 
-      // View needs to listen to itself for changes and re-render
-      view.bind(PiewPiew.View.events.CHANGE, function(view, changes) {
-        view.render();  
-      });
+        return null;
+      },
 
-      // Initialise DOM event handlers. Handlers may have been declared as 
-      // either functions or strings. Strings will be interpreted the names of
-      // handlers defined in the view object, and delegate functions will be
-      // created to be bound to each DOM event.
-      var delegates = {};
-
-      for (var h in view.handlers) {
-        var tokens    = h.split(" ");
-        var eventName = tokens.shift();
-        var selector  = tokens.join(" ");
-        var handler   = view.handlers[h];
-        
-        delegates[selector] = delegates[selector] || {};
-
-        if (typeof handler == 'string' && typeof view[handler] == 'function') {
-          delegates[selector][eventName] = PiewPiew.createDelegate(
-            view, 
-            view[handler]
-          );
-        } else {
-          delegates[selector][eventName] = handler;
+      removeItemAt: function(index) {
+        if (index > -1 && index < _items.length) {
+          var item = _items.splice(index, 1)[0];
+          this.length = _items.length;
+          this.trigger(PiewPiew.List.events.ITEM_REMOVED, this, item);
+          return item;
         }
-      }
+        return null;
+      },
 
-      for (var selector in delegates) {
-        $(view.el).delegate(selector, delegates[selector]);   
-      }
+      each: function(callback) {
+        for (var i = 0, l = _items.length; i < l; i++) {
+          callback.apply(_items[i]);
+        }
+        return this;
+      },
 
-      // The view may have been created with custom attributes. If this is the
-      // case these attributes need to be passed to view.set()
-      if (view.attributes) {
-        view.set(view.attributes);
-        view.attributes = null;
-      }
+      indexOf: function(item) {
+        if (_items.indexOf) {
+          return _items.indexOf(item);
+        }
 
-      view.init();
-      
-      return view;
-    }
+        for (var i = 0, l = _items.length; i < l; i++) {
+          if (_items[i] === item) {
+            return i;
+          }
+        }
+
+        return -1;
+      }
     
-    /**
-     * Extends the base View object with the defaults and spec if provided, then
-     * initialises the View and returns it.
-     */
-    return _initView(extend({
-      id:               "View" + (idSequence++),
-      tagname:          "div",
-      template:         "",
-      templateUrl:      null,
-      templateSelector: null,
-      classes:          [],
-      handlers:         {},
-            
-      /**
-       * Initialise the View. Extended Views should provide their own 
-       * implementation. It is a good idea to return a reference to ourself here
-       * to allow for method chaining.
-       */
-      init: function() {
-        return this;
-      },
-      
-      /**
-       * Renders our template using the provided template context
-       *
-       * @param {PiewPiew.TemplateContext} templateContext
-       * @param {function} callback
-       */
-      renderTemplate: function(templateContext, callback) {
-        // If we have already resolved our template, then we can render and return
-        // immediately
-        if (_template) {
-          if (callback) {
-            callback(PiewPiew.parseTemplate(_template, templateContext));
-          }
-        } 
-        // If we are using an external template, then load it now
-        else if (this.templateUrl && !_templateLoaded && !_templateLoading) {
-          var that = this;
-
-          this.loadExternalTemplate(this.templateUrl, function(template) {
-            if (template) {
-              // Store the loaded template to speed up future calls to 
-              // renderTemplate()
-              _template = template;
-              
-              callback(PiewPiew.parseTemplate(_template, templateContext));
-            } else {
-              // TODO: error loading template needs handling
-            }
-          });
-        } 
-        // Maybe we are using a template from the DOM
-        else if (this.templateSelector) {
-          _template = $(this.templateSelector).html();
-
-          if (callback) {
-            callback(PiewPiew.parseTemplate(_template, templateContext));
-          }
-        }
-        // Maybe our template is a string literal ...
-        else if (typeof this.template == "string") {
-          _template = this.template;
-
-          if (callback) {
-            callback(PiewPiew.parseTemplate(_template, templateContext));
-          }
-        } 
-        // Finally it could be a function. We wont cache the return value of the
-        // function in _template in this case, as the function may be designed to
-        // return different values on subsequent executions
-        else if (typeof this.template == "function") {
-          if (callback) {
-            callback(PiewPiew.parseTemplate(this.template(), templateContext));
-          }
-        }        
-      },
-
-      render: function() {
-        var that = this;
-
-        this.renderTemplate(
-          PiewPiew.TemplateContext(this.serialize()), 
-          function(content) {
-            $(that.el).html(content);    
-          }
-        );
-
-        return this;
-      },
-
-      /**
-       * Return a JSON compatible representation of our object
-       *
-       * @return {object}
-       */
-      serialize: function() {
-        return _attributes;
-      },
-
-      /**
-       * Asynchronously loads a template from an external URL
-       *
-       * @param {string} url
-       * @param {function} callback
-       */
-      loadExternalTemplate: function(url, callback) {
-        // See if we already have a cached copy of the template
-        if (_templateCache[url]) {
-          _templateLoaded  = true;
-          _templateLoading = false;
-          if (callback) {
-            callback(_templateCache[url]);
-          }
-        } else {
-
-          var that = this;
-
-          $.ajax(url, {
-            dataType:'html',
-            error:function(jqXHR, textStatus, errorThrown) {
-              _templateLoaded   = true;
-              _templateLoading  = false;
-              
-              if (callback) {
-                callback(null);
-              }
-            },
-            success: function(data) {
-              _templateLoaded   = true;
-              _templateLoading  = false;
-              _templateCache[url] = data;
-
-              if (callback) {
-                callback(data);
-              }
-            }
-          });        
-        }
-      }
-      
-    }, EventDispatcher(), Watchable(_attributes, PiewPiew.View.events.CHANGE), spec || {}));
-  };
-
-  View.extend = function(spec) {
-    return function(options) {
-      return PiewPiew.View(PiewPiew.extend({}, spec, options));
-    }
-  };
-
-  View.events = {
-    CHANGE : "PiewPiew.View:change"
+    }, PiewPiew.EventDispatcher());
   }
+
+  module.List.events = {
+    ITEM_ADDED:   "PiewPiew.model.events.ITEM_ADDED",
+    ITEM_REMOVED: "PiewPiew.model.events.ITEM_REMOVED" 
+  };
+
+  
+
+  module.ListView = function(spec) {
+    var _model = null;
+
+    var _itemAddedHandler = null;
+
+    return PiewPiew.View(extend({
+      itemContainer: '',
+      tagname: 'ul',
+      itemView: PiewPiew.View,
+
+      setModel: function(model) {
+        var that = this;
+        // unlike regular views we are really only interested in add and remove
+        // events.
+
+        _model = model;
+
+        _itemAddedHandler = PiewPiew.createDelegate(this, function(list, item) {
+          console.log("added", list, item);
+          that.appendItem(item);
+        });
+
+        _model.bind(PiewPiew.List.events.ITEM_ADDED, _itemAddedHandler);
+      },
+
+      appendItem: function(item) {
+        // instantiate the appropriate view type, set item as the views model
+        // then render the view, and append to our itemContainer
+        var view = PiewPiew.View({
+          tagname:"li"
+        });
+        view.setModel(item);
+
+        $(this.el).append(view.render().el);
+      }
+    }, spec || {}));
+  };
+
+  return module;
 
   /**
    * Return the PiewPiew module
    */
+  /* 
   return extend(module, {
     extend:           extend,
     createDelegate:   createDelegate,
     locale:           _defaultLocale,
     parseTemplate:    parseTemplate,
     EventDispatcher:  EventDispatcher, 
+    List:             List,
     Model:            Model,
     StringBundle:     StringBundle,
     TemplateContext:  TemplateContext,
-    View:             View
-  });
+    View:             View,
+    ListView:         ListView
+  });*/
 }(PiewPiew || {}));
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-var ExampleView = PiewPiew.View.extend(
-{
-    template: '#ExampleViewTemplate',
-
-    attributes: {
-      count: 0  
-    },
-
-    handlers: {
-      "click button.increment" : 'increment',
-      "click button.decrement" : 'decrement'
-    },
-
-    increment: function(e) {
-      this.set({count: this.get("count", 0) + 1});
-      this.trigger("increment", this.get("count"));
-      e.preventDefault();
-    },
-
-    decrement: function(e) {
-      this.set({count: this.get("count", 0) - 1});
-      this.trigger("decrement", this.get("count"));
-      e.preventDefault();
-    },
-
-    modelBindings: {
-      "name" : "name",
-      "age"  : function(value) {
-        this.set({age: value});
-      }
-    }
-  }
-);
-
-
-
-
-// Test out the StringBundle
-
-PiewPiew.StringBundle.addStrings({
-  "mysample.title": "This is the title - {{name}}",
-  "mysample.body":  "This is the <strong>body</strong> here"
-});
-
-console.log(Mustache.to_html("Here is a {{#s}}mysample.title{{/s}}", PiewPiew.TemplateContext({name:"Tony"})));
-
-

@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/!svn/ver/707/puremvc-js/trunk/build/tools/jsdoc-toolkit/templates/codeview
+END
+class.tmpl
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/!svn/ver/707/puremvc-js/trunk/build/tools/jsdoc-toolkit/templates/codeview/class.tmpl
+END
+license.txt
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/!svn/ver/707/puremvc-js/trunk/build/tools/jsdoc-toolkit/templates/codeview/license.txt
+END
+allclasses.tmpl
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/!svn/ver/707/puremvc-js/trunk/build/tools/jsdoc-toolkit/templates/codeview/allclasses.tmpl
+END
+publish.js
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/!svn/ver/707/puremvc-js/trunk/build/tools/jsdoc-toolkit/templates/codeview/publish.js
+END
+allfiles.tmpl
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/!svn/ver/707/puremvc-js/trunk/build/tools/jsdoc-toolkit/templates/codeview/allfiles.tmpl
+END

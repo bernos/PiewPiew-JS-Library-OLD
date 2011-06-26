@@ -2,24 +2,79 @@
 <head>
 <script type="text/javascript" src="https://www.google.com/jsapi?key=ABQIAAAAY-Lo7xQQjw2KtaKDgwLbFBShyhCcQbTnWyZZb_B2QMXxZCh9kxTQY6MXPrS0KhZmYBqjlgEVQ18rHg"></script>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
-<script type="text/javascript" src="js/mustache.js"></script>
-<script type="text/javascript" src="js/piewpiew.js"></script>
+<script type="text/javascript" src="js/vendor/mustache.js"></script>
+<script type="text/javascript" src="js/piewpiew-%build.number%.js"></script>
 <script type="text/javascript">
 
-var myModel = PiewPiew.Model();
-var myOtherModel = PiewPiew.Model();
+var view = PiewPiew.View({
+  //template: "<div>name: {{name}}</div><div>age: {{age}}</div>",
+  
+  modelInterests: [
+    "name",
+    "age"
+  ],
 
-myModel.bind(PiewPiew.Model.events.CHANGE, function(model, changes) {
-  console.log("Model changes", changes);  
+  templateHelpers: {
+    age : function() {
+      return this.get("age", 0) + " years";
+    }
+  }
 });
 
-myModel.set({
-  name: "Brendan",
-  age: 32
+
+var myModel = PiewPiew.Model({
+  
+}).set({
+    name: "Brendan",
+    age:  32, 
+  });
+
+view.setModel(myModel);
+
+$(function() {
+document.body.appendChild(view.render().el);
 });
 
+//document.body.appendChild(view.render().el);
 
 
+/*
+var ExampleView = PiewPiew.View.extend(
+{
+    template: '#ExampleViewTemplate',
+
+    attributes: {
+      count: 0  
+    },
+
+    handlers: {
+      "click button.increment" : 'increment',
+      "click button.decrement" : 'decrement'
+    },
+
+    increment: function(e) {
+      this.set({count: this.get("count", 0) + 1});
+      this.trigger("increment", this.get("count"));
+      e.preventDefault();
+    },
+
+    decrement: function(e) {
+      this.set({count: this.get("count", 0) - 1});
+      this.trigger("decrement", this.get("count"));
+      e.preventDefault();
+    },
+
+    modelBindings: {
+      "name" : "name",
+      "age"  : function(value) {
+        this.set({age: value});
+      }
+    }
+  }
+);
+*/
+
+/*
 var FeedView = PiewPiew.View.extend({
   id: "FeedView",
   template: "#FeedViewTemplate"
@@ -117,7 +172,7 @@ $(function() {
   document.body.appendChild(view3.set({count:32}).el);  
   document.body.appendChild(view4.set({count:32}).el);  
 });
-
+*/
 </script>
 
 <script id="ExampleTemplate" type="text/html">

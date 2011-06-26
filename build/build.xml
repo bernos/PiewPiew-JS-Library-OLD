@@ -1,0 +1,118 @@
+<?xml version="1.0"?>
+<project name="PiewPiew JS framework" default="build-production" basedir="../src">
+  <description>PiewPiew JS framework</description>
+
+  <!-- load property files -->
+  
+  <property file="../build/config/build.properties"/>
+  <property file="../build/config/default.properties"/>
+
+  <!-- Initialises a debug build -->
+  <target name="init.debug">
+    <property name="dir.publish" value="${dir.publish.debug}"/>
+  </target>
+
+  <!-- Initialises a production build -->
+  <target name="init.production">
+    <property name="dir.publish" value="${dir.publish.production}"/>
+  </target>
+
+  <!-- 
+    Debugging build. No minification, no docs
+  -->
+  <target name="build-debug" depends="init.debug,rev,js.concat"></target>
+
+  <!-- Full build with concatenation and minification on all css and js -->
+  <target name="build-production" depends="init.production,rev,js.all"></target>
+
+  <!-- Increase the current build number by one and set build date -->
+  <!-- as per http://www.ibmpressbooks.com/articles/article.aspx?p=519946 -->
+  <target name="rev" depends="-copy">
+    <echo message="Rev the build number..."/>
+    <propertyfile file="./${dir.build}/${build.info}" comment="Build Information File - DO NOT CHANGE">
+      <entry key="build.number" type="int" default="0000" operation="+" pattern="0000"/>
+      <entry key="build.date" type="date" value="now" pattern="dd.MM.yyyy HH:mm"/>
+    </propertyfile>
+    <property file="./${dir.build}/${build.info}"/>
+    <replace dir="${dir.publish}" token="%build.number%" value="${build.number}" />
+    <replace dir="${dir.publish}" token="%build.date%" value="${build.date}" />
+  </target>
+
+  <!--
+    Concat, minify, then document all js
+  -->
+  <target name="js.all" depends="js.concat,js.min,js.doc"></target>
+
+  <!--
+    Create JS docs
+  -->
+  <target name="js.doc" depends="-copy">
+    <exec executable="java">
+      <arg line="-jar"/>
+      <arg path="${dir.tools}/jsdoc-toolkit/jsrun.jar"/>
+      <arg path="${dir.tools}/jsdoc-toolkit/app/run.js"/>
+      <arg line="-t=${dir.tools}/jsdoc-toolkit/templates/jsdoc"/>
+      <arg line="-r=10"/>
+      <arg line="${dir.publish}/${dir.js}"/>
+      <arg line="-d=../docs"/>
+    </exec>
+  </target>
+
+  <!--
+    Concat js
+  -->
+  <target name="js.concat" depends="-copy">
+    <echo message="Concatenating JS scripts"/>
+    <concat destfile="${dir.publish}/${dir.js}/piewpiew-${build.number}.js">
+      <!-- Order is important here -->
+      <filelist dir="${dir.publish}/${dir.js}"
+                files="piewpiew.js,
+                       piewpiew-view.js,
+                       piewpiew-model.js"/>      
+    </concat>
+    <!-- get rid of unconcatenated js. -->
+    <delete includeemptydirs="true">
+      <fileset dir="${dir.publish}/${dir.js}" 
+               includes="**/*" 
+               excludes="piewpiew-${build.number}.js,
+                         vendor/*"/>
+    </delete>
+  </target>
+
+  <!--
+    Minify js
+  -->
+  <target name="js.min" depends="-copy">
+    <echo message="Minifying javascript"/>
+    <apply executable="java" parallel="false" dest="./${dir.publish}/${dir.js}">
+      <fileset dir="${dir.publish}/${dir.js}">
+        <include name="**/*.js"/>
+        <exclude name="**/*.min.js"/>
+      </fileset>
+      <arg line="-jar"/>
+      <arg path="./${dir.tools}/${tool.yuicompressor}"/>
+      <srcfile/>
+      <arg line="--line-break"/>
+      <arg line="4000"/>
+      <arg line="-o"/>
+      <mapper type="glob" from="*.js" to="*.min.js"/>
+      <targetfile/>
+    </apply>
+  </target>
+
+  <target name="-copy" depends="-clean">
+    <mkdir dir="${dir.publish}"/>
+    <copy todir="${dir.publish}" preservelastmodified="true">
+      <fileset dir="./">
+        <exclude name="${dir.publish}/"/>
+        <exclude name="${dir.build}/"/>
+      </fileset>
+    </copy>
+  </target>
+
+  <!-- Clean output folder -->
+  <target name="-clean">
+    <delete dir="${dir.publish}" />
+  </target>
+
+</project>

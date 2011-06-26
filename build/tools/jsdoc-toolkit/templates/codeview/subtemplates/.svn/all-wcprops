@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/!svn/ver/707/puremvc-js/trunk/build/tools/jsdoc-toolkit/templates/codeview/subtemplates
+END
+menu.tmpl
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/!svn/ver/707/puremvc-js/trunk/build/tools/jsdoc-toolkit/templates/codeview/subtemplates/menu.tmpl
+END
+foot.tmpl
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/!svn/ver/707/puremvc-js/trunk/build/tools/jsdoc-toolkit/templates/codeview/subtemplates/foot.tmpl
+END
+head.tmpl
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/!svn/ver/707/puremvc-js/trunk/build/tools/jsdoc-toolkit/templates/codeview/subtemplates/head.tmpl
+END
