@@ -6,6 +6,25 @@
 <script type="text/javascript" src="js/piewpiew-%build.number%.js"></script>
 <script type="text/javascript">
 
+
+
+var MyClass = function(name) {
+  var _name = name;
+
+  //var myClass = function() {};
+
+  MyClass.prototype.getName = function() {
+    return _name;
+  }
+
+  //return myClass;
+}
+
+
+
+
+
+
 var view = PiewPiew.View({
   //template: "<div>name: {{name}}</div><div>age: {{age}}</div>",
   
@@ -38,12 +57,12 @@ document.body.appendChild(view.render().el);
 //document.body.appendChild(view.render().el);
 
 
-/*
+
 var ExampleView = PiewPiew.View.extend(
 {
-    template: '#ExampleViewTemplate',
+    template: 'Count is {{count}} <button class="increment">+</button> <button class="decrement">-</button>',
 
-    attributes: {
+    defaults: {
       count: 0  
     },
 
@@ -72,7 +91,11 @@ var ExampleView = PiewPiew.View.extend(
     }
   }
 );
-*/
+
+var BetterView = ExampleView.extend({
+  template: 'Better Count is {{count}} <button class="increment">+</button> <button class="decrement">-</button>',
+});
+
 
 /*
 var FeedView = PiewPiew.View.extend({

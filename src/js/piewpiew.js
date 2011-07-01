@@ -112,6 +112,19 @@ var PiewPiew = (function(module) {
       }
     };
   };
+
+  module.Extendable = function(baseType) {
+    baseType.extend = function(spec) {
+      var newType = function(options) {
+        return baseType(module.extend({}, spec, options));
+      }
+
+      module.Extendable(newType);
+      
+      return newType;
+    };
+    return baseType;
+  };
   
   /*****************************************************************************
    * Creates a "Watchable" object that can be mixed into any other object using
