@@ -1,10 +1,10 @@
-(function(PiewPiew){
+(function(PiewPiew) {
   PiewPiew.EventDispatcher = PiewPiew.Class({
-    /**
-     * Storage for event handlers
-     */
-    _handlers:{},
-
+    
+    initialize: function() {
+      this._handlers = {};
+    },
+    
     /**
      * Bind a handler to an event
      *
@@ -54,6 +54,7 @@
      */
     trigger: function(ev) {
       var l;
+      console.log("trigger ", ev, this._handlers[ev]);
       if (l = this._handlers[ev]) {
         for (var i = 0, m = l.length; i < m; i++) {
           l[i].apply(this, Array.prototype.slice.call(arguments, 1));

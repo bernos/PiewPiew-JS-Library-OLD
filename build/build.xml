@@ -69,6 +69,7 @@
                 files="piewpiew.js,
                        piewpiew.oo.js,
                        piewpiew.eventdispatcher.js,
+                       piewpiew.propertymanager.js,
                        piewpiew.stringbundle.js,
                        piewpiew-view.js,
                        piewpiew-model.js"/>      

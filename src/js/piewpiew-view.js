@@ -74,6 +74,7 @@ var PiewPiew = (function(PP){
 
       // View needs to listen to itself for changes and re-render
       view.bind(PP.View.events.CHANGE, function(view, changes) {
+        console.log("View change handler");
         view.render();  
       });
 
@@ -118,8 +119,8 @@ var PiewPiew = (function(PP){
      * initialises the View and returns it.
      */
     return _initView(PP.extend(
-      new PP.EventDispatcher(), 
-      PP.Watchable(_attributes, PP.View.events.CHANGE),
+      new PP.PropertyManager(PP.View.events.CHANGE), 
+      //PP.Watchable(_attributes, PP.View.events.CHANGE),
       spec || {},
       {
         id:               spec.id || "View" + (idSequence++),
@@ -138,8 +139,8 @@ var PiewPiew = (function(PP){
          */
         template: spec.template || function(context) {
           var t = "<div><strong>id:</strong> " + this.id + "</div>";
-          for(var n in _attributes) {
-            t += "<div><strong>" + n + ":</strong> " + _attributes[n] + "</div>"
+          for(var n in this._attributes) {
+            t += "<div><strong>" + n + ":</strong> " + this._attributes[n] + "</div>"
           }
           return t;
         },      
@@ -187,6 +188,8 @@ var PiewPiew = (function(PP){
             var n = this.modelInterests[i];
             attributes[n] = model.get(n);
           }
+
+          console.log("view will now set ", attributes);
 
           this.set(attributes);
 
@@ -260,12 +263,13 @@ var PiewPiew = (function(PP){
           for(var name in this.templateHelpers) {
             context[name] = this.templateHelpers[name].apply(this);
           }
-
+console.log("context ", context);
           return context;
         },
 
         render: function() {
           var that = this;
+          console.log("rendering");
 
           this.renderTemplate(
             PP.TemplateContext(this.templateContext()), 
@@ -277,18 +281,7 @@ var PiewPiew = (function(PP){
           return this;
         },
 
-        /**
-         * Return a JSON compatible representation of our object
-         *
-         * @return {object}
-         */
-        serialize: function() {
-          var s = {};
-          for (var n in _attributes) {
-            s[n] = _attributes[n];
-          }
-          return s;
-        },
+        
 
         /**
          * Asynchronously loads a template from an external URL
@@ -348,6 +341,8 @@ var PiewPiew = (function(PP){
         },
 
         handleModelChange: function(model, changes) {
+          console.log("view heard ", changes);
+
           var attributes = {};
           var trigger    = false;
 

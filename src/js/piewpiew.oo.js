@@ -1,8 +1,16 @@
 (function(PiewPiew) {
   
+  /**
+   * Helper function for creating new classes
+   */
   function create() {
     var methods = null;
+    
     var parent  = null;
+    
+    /**
+     * A default constructor
+     */
     var klass   = function() {
       this.$super = function(method, args) {
         return this.$parent[method].apply(this, args);
@@ -27,13 +35,14 @@
 
     if (!klass.prototype.initialize) {
       klass.prototype.initialize = function(){};
-    } else {
-      console.log("initialize is ",klass.prototype.initialize);
-    }
+    } 
 
     return klass;
   }
 
+  /**
+   * Helper function for merging methods to prototypes
+   */
   function extend(destination, source) {
     for (var p in source) {
       destination[p] = source[p];

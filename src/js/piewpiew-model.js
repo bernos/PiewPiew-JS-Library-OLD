@@ -9,8 +9,8 @@ var PiewPiew = (function(PP){
     }
 
     var model = PiewPiew.extend(
-      new PiewPiew.EventDispatcher(), 
-      PiewPiew.Watchable(_attributes, PiewPiew.Model.events.CHANGE),
+      new PiewPiew.PropertyManager("PiewPiew.model.events:CHANGE"), 
+      //PiewPiew.Watchable(_attributes, PiewPiew.Model.events.CHANGE),
       spec || {}
     );
 
