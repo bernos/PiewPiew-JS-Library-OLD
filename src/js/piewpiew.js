@@ -68,49 +68,7 @@
     return Mustache.to_html(template, context);
   };
 
-  /*****************************************************************************
-   * Creates an EventDispatcher object that can be mixed into any other object
-   * using the PiewPiew.extend() method
-   ****************************************************************************/
-  module.EventDispatcher = function() {
-    var _handlers = {};
-         
-    return {
-      bind: function(ev, handler) {
-        var l = _handlers[ev] || (_handlers[ev] = []);
-        l.push(handler);
-        return this;
-      },
-
-      unbind: function(ev, handler) {
-        if (!ev) {
-          _handlers = {};
-        } else if (!handler) {
-          _handlers[ev] = [];
-        } else if (_handlers[ev]) {
-          var l = _handlers[ev];
-          var m = l.length - 1;
-          for (var i = m; i > -1; i--) {
-            if (l[i] === handler) {
-              l.splice(i,1);
-              return this;
-            }
-          }
-        }
-        return this;
-      },
-
-      trigger: function(ev) {
-        var l;
-        if (l = _handlers[ev]) {
-          for (var i = 0, m = l.length; i < m; i++) {
-            l[i].apply(this, Array.prototype.slice.call(arguments, 1));
-          }
-        }
-        return this;
-      }
-    };
-  };
+  
 
   module.Extendable = function(baseType) {
     baseType.extend = function(spec) {
