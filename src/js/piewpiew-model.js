@@ -9,7 +9,7 @@ var PiewPiew = (function(PP){
     }
 
     var model = PiewPiew.extend(
-      PiewPiew.EventDispatcher(), 
+      new PiewPiew.EventDispatcher(), 
       PiewPiew.Watchable(_attributes, PiewPiew.Model.events.CHANGE),
       spec || {}
     );

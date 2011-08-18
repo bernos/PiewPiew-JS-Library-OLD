@@ -27,6 +27,8 @@
 
     if (!klass.prototype.initialize) {
       klass.prototype.initialize = function(){};
+    } else {
+      console.log("initialize is ",klass.prototype.initialize);
     }
 
     return klass;

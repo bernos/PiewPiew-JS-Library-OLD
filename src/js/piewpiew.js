@@ -244,7 +244,7 @@
         return -1;
       }
     
-    }, PiewPiew.EventDispatcher());
+    }, new PiewPiew.EventDispatcher());
   }
 
   module.List.events = {

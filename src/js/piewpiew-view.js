@@ -118,7 +118,7 @@ var PiewPiew = (function(PP){
      * initialises the View and returns it.
      */
     return _initView(PP.extend(
-      PP.EventDispatcher(), 
+      new PP.EventDispatcher(), 
       PP.Watchable(_attributes, PP.View.events.CHANGE),
       spec || {},
       {
