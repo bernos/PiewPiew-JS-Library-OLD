@@ -72,7 +72,7 @@
                        piewpiew.propertymanager.js,
                        piewpiew.stringbundle.js,
                        piewpiew-view.js,
-                       piewpiew-model.js"/>      
+                       piewpiew.model.js"/>      
     </concat>
     <!-- get rid of unconcatenated js. -->
     <delete includeemptydirs="true">

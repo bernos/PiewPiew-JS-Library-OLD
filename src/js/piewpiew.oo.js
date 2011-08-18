@@ -12,6 +12,9 @@
      * A default constructor
      */
     var klass   = function() {
+      // FIXME: This method of calling $super only works for single tiered inheritance. Anything further
+      // down the inheritance chain overwrites the value of $super which can result in methods being called
+      // recursively
       this.$super = function(method, args) {
         return this.$parent[method].apply(this, args);
       }
@@ -49,6 +52,10 @@
     }
     return destination;
   }  
+
+  function $super(parentClass, instance, method, args) {
+    return parentClass[method].apply(instance, args);
+  }
 
   PiewPiew.Class = function() {
     return create.apply(this, arguments);  

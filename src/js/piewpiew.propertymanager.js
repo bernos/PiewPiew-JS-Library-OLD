@@ -8,8 +8,8 @@
      *  The event that will be dispatched when a managed property changes
      */
     initialize: function(changeEvent) {
-      this.$super('initialize');
-
+      PiewPiew.EventDispatcher.prototype.initialize.apply(this);
+      
       this._attributes = {};
 
       if (null == changeEvent) {
