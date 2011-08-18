@@ -1,18 +1,17 @@
 /**
  * The PiewPiew module
  */
-var PiewPiew = (function(module) {
-  
-  /**
-   * Default value to use for locale if one is not provided
-   */
-  var _defaultLocale = 'defaultLocale';
+
+(function(global) {
+  var PiewPiew = pp = module = {
+    VERSION: '0.0.1'
+  };
 
   /**
    * Internal storage for StringBundle
    */
   var _strings = {};
-  
+
   /**
    * Extends one object by adding properties from another object
    * 
@@ -133,7 +132,7 @@ var PiewPiew = (function(module) {
    * to determine the type of event that should be triggered when a call to the 
    * set() method results in an attribute change
    ****************************************************************************/
-  module.Watchable = function(attributes, changeEvent) {
+  module.Watchable = module.Extendable(function(attributes, changeEvent) {
     return {
       /**
        * Gets an attribute value from the view
@@ -176,92 +175,8 @@ var PiewPiew = (function(module) {
         return this;
       }      
     }
-  }
-  /*****************************************************************************
-   * The StringBundle is a useful place to store all strings and messages that
-   * your application will use. Bundles can be stored in external .json files
-   * and loaded at runtime using the StringBundle.load() function. The 
-   * StringBundle can also handle multiple locales.
-   *
-   * StringBundle also supports template strings using the templating library
-   * of your choice. By default we use the Mustache templating library, but this
-   * can easily be overriden by implementing an alternative version of
-   * PiewPiew.parseTemplate(template,context)
-   ****************************************************************************/
-  module.StringBundle = (function(){
-        
-    return {
-      /**
-       * Add strings to the StringBundle
-       * 
-       * @param {object} strings
-       *  An object containing keys/strings to add to the StringBundle
-       * @return {object} 
-       *  A reference to the StringBundle. Useful for method chaining.
-       */
-      addStrings: function(strings, locale) {
-        if(!locale) {
-          locale = PiewPiew.locale;
-        }
-        
-        if(!_strings[locale]) {
-          _strings[locale] = {};
-        }
-        
-        _strings[locale] = PiewPiew.extend(_strings[locale], strings);
-        
-        return this;
-      },
-      
-      /**
-       * Retrieves a string from the StringBundle
-       * 
-       * @param {string} key
-       *  Key of the string to retrieve
-       * @param {object} context
-       *  A context object containing variables to be used in cases where the
-       *  requested string is a template string
-       * @param {string} defaultValue
-       *  Default value to be returned if no string is found
-       * @return {string}
-       *  Either the requested string, or the default provided
-       */
-      getString: function(key, context, defaultValue) {
-        if (_strings[PiewPiew.locale] && _strings[PiewPiew.locale][key]) {
-          return PiewPiew.parseTemplate(
-            _strings[PiewPiew.locale][key], 
-            context
-          );
-        }
-        
-        if (defaultValue) {
-          return PiewPiew.parseTemplate(defaultValue, context);
-        }
-        
-        return key;
-      },
-
-      /**
-       * Loads a string bundle from the given URL. String bundles are simple
-       * JSON
-       * 
-       * @param {string} url
-       * @param {function} callback
-       * @param {string} locale
-       */
-      load: function(url, callback, locale) {
-        var that = this;
-
-        $.getJSON(url, function(data) {
-          console.log(data);
-          that.addStrings(data, locale);
-          if (callback) {
-            callback();
-          }
-        });
-      }
-    }
-  }());
+  });
+  
   
   /*****************************************************************************
    * Creates a context object ready for rendering. TemplateContexts provide data
@@ -419,23 +334,11 @@ var PiewPiew = (function(module) {
     }, spec || {}));
   };
 
-  return module;
 
-  /**
-   * Return the PiewPiew module
-   */
-  /* 
-  return extend(module, {
-    extend:           extend,
-    createDelegate:   createDelegate,
-    locale:           _defaultLocale,
-    parseTemplate:    parseTemplate,
-    EventDispatcher:  EventDispatcher, 
-    List:             List,
-    Model:            Model,
-    StringBundle:     StringBundle,
-    TemplateContext:  TemplateContext,
-    View:             View,
-    ListView:         ListView
-  });*/
-}(PiewPiew || {}));
+  if (global.PiewPiew) {
+    throw new Error("PiewPiew has already been defined.");
+  } else {
+    global.PiewPiew = PiewPiew;
+  }
+})(typeof window === 'undefined' ? this : window);
+
