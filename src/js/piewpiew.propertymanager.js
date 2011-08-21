@@ -1,3 +1,10 @@
+/*****************************************************************************
+   * Creates a "Watchable" object that can be mixed into any other object using
+   * the PiewPiew.extend() method. Watchable object provide access to internal
+   * attributes via get() and set() methods. The changeEvent param can be used 
+   * to determine the type of event that should be triggered when a call to the 
+   * set() method results in an attribute change
+   ****************************************************************************/
 (function(PiewPiew){
   PiewPiew.PropertyManager = PiewPiew.Class(PiewPiew.EventDispatcher, {
     

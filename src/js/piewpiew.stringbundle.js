@@ -53,7 +53,7 @@
      * @return {string}
      *  Either the requested string, or the default provided
      */
-    getString: function(key, context, defaultValue) {
+    getString: function(key, context, defaultValue, parse) {
       if (_strings[PiewPiew.locale] && _strings[PiewPiew.locale][key]) {
         return PiewPiew.parseTemplate(
           _strings[PiewPiew.locale][key], 
@@ -65,6 +65,24 @@
         return PiewPiew.parseTemplate(defaultValue, context);
       }
       
+      return key;
+    },
+
+    /**
+     * Retrieves a string from the StringBundle, without parsing any template
+     * data or expressions. Use this method if you need to process raw template
+     * strings manually.
+     *
+     * @param {String} key
+     *  Key of the string to retrieve
+     * @return {String}
+     *  The requested string or the key if the string does not exist
+     */
+    getRawString: function(key) {
+      if (_strings[PiewPiew.locale] && _strings[PiewPiew.locale][key]) {
+        return _strings[PiewPiew.locale][key];
+      }
+            
       return key;
     },
 

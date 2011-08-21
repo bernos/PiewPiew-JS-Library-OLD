@@ -71,7 +71,8 @@
                        piewpiew.eventdispatcher.js,
                        piewpiew.propertymanager.js,
                        piewpiew.stringbundle.js,
-                       piewpiew-view.js,
+                       piewpiew.templatecontext.js,
+                       piewpiew.view.js,
                        piewpiew.model.js"/>      
     </concat>
     <!-- get rid of unconcatenated js. -->

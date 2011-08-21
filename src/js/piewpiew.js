@@ -8,11 +8,6 @@
   };
 
   /**
-   * Internal storage for StringBundle
-   */
-  var _strings = {};
-
-  /**
    * Extends one object by adding properties from another object
    * 
    * @alias PiewPiew.extend
@@ -83,93 +78,8 @@
     return baseType;
   };
   
-  /*****************************************************************************
-   * Creates a "Watchable" object that can be mixed into any other object using
-   * the PiewPiew.extend() method. Watchable object provide access to internal
-   * attributes via get() and set() methods. The changeEvent param can be used 
-   * to determine the type of event that should be triggered when a call to the 
-   * set() method results in an attribute change
-   ****************************************************************************/
-  module.Watchable = module.Extendable(function(attributes, changeEvent) {
-    return {
-      /**
-       * Gets an attribute value from the view
-       *
-       * @param {string} attribute
-       *  The name of the attribute to retrieve
-       * @param {string} defaultValue
-       *  The default value to return if none has been set
-       * @return {object}
-       */
-      get: function(attribute, defaultValue) {
-        var value = attributes[attribute];
-        return (null != value) ? value : defaultValue;
-      },
-
-      /**
-       * Sets view attributes. The view will call its render() function if any
-       * attributes change as a result of this call.
-       *
-       * @param {object} map
-       *  A map of attribute names and values to set
-       * @return {PiewPiew.View}
-       */
-      set: function(map) {
-        var changes = {};
-        var changed = false;
-        
-        for(var name in map) {
-          if (attributes[name] !== map[name]) {
-            changed           = true;
-            attributes[name]  = map[name];
-            changes[name]     = attributes[name];
-          }
-        }
-
-        if (changed) {
-          this.trigger(changeEvent, this, changes);
-        }
-
-        return this;
-      }      
-    }
-  });
   
-  
-  /*****************************************************************************
-   * Creates a context object ready for rendering. TemplateContexts provide data
-   * and helper functions to templates. New helper functions can be added by
-   * calling PiewPiew.TemplateContext.addHelpers()
-   *
-   * @constructor
-   ****************************************************************************/
-  module.TemplateContext = (function() {
-    var helpers = {
-      /**
-       * Helper function for retrieving strings from the string bundle
-       */
-      s:function() {
-        return function(key, render) {
-          if (_strings[PiewPiew.locale] && _strings[PiewPiew.locale][key]) {
-            return render(_strings[PiewPiew.locale][key]);
-          }
-          
-          return key;
-        }
-      }
-    };
-    
-    var templateContext = function(data) {
-      return PiewPiew.extend({}, helpers, data);
-    };
-    
-    templateContext.addHelpers = function(newHelpers) {
-      PiewPiew.extend(helpers, newHelpers);
-    };
-    
-    return templateContext;
-  }());
-  
+
   
 
   module.List = function(items) {

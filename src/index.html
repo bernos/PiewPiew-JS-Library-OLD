@@ -21,12 +21,8 @@ var MyClass = function(name) {
 }
 
 
-
-
-
-
-var view = PiewPiew.View({
-  //template: "<div>name: {{name}}</div><div>age: {{age}}</div>",
+var view = new PiewPiew.View({
+  template: "<div>name: {{name}}</div><div>age: {{age}}</div>",
   
   modelInterests: [
     "name",
@@ -58,8 +54,16 @@ document.body.appendChild(view.render().el);
 
 
 
-var ExampleView = PiewPiew.View.extend(
+var ExampleView = new PiewPiew.View(
 {
+  // TODO: Need a way to easily define non-scalar properties like 'defaults' below...
+  // As is, we'll end up with all ExampleView isntances sharing the same 'defaults' and
+  // 'handlers' references, which is not exactly what we want.
+
+  // One way to achieve this would be to provide an overriden getDefaults() implementation
+  // in our ExampleView class. This implementation could retrieve the default objec from
+  // PiewPiew.View.prototype.getDefaults, then extend/overwrite properties of the object 
+  // before returning it.
     template: 'Count is {{count}} <button class="increment">+</button> <button class="decrement">-</button>',
 
     defaults: {
@@ -92,7 +96,7 @@ var ExampleView = PiewPiew.View.extend(
   }
 );
 
-var BetterView = ExampleView.extend({
+var BetterView = PiewPiew.Class(ExampleView, {
   template: 'Better Count is {{count}} <button class="increment">+</button> <button class="decrement">-</button>',
 });
 
@@ -145,26 +149,27 @@ google.setOnLoadCallback(function() {
 });
 
 //google.load("feeds", "1");
+*/
 
 // A view with a simple string literal template
-var view1 = PiewPiew.View({
+var view1 = new PiewPiew.View({
   template: "Hello world!"
 });
 
 // A view with a template function
-var view2 = PiewPiew.View({
+var view2 = new PiewPiew.View({
   template: function() {
     return "Hello world from a template function";
   }
 });
 
 // A view with a template from the DOM
-var view3 = PiewPiew.View({
+var view3 = new PiewPiew.View({
   templateSelector: "#ExampleTemplate"
 });
 
 // Finally a view with an external template
-var view4 = PiewPiew.View({
+var view4 = new PiewPiew.View({
   templateUrl: "ExampleView.html",
   
   attributes: {
@@ -190,12 +195,13 @@ var view4 = PiewPiew.View({
 });
 
 $(function() {
+ 
   document.body.appendChild(view1.set({count:32}).el);  
   document.body.appendChild(view2.set({count:32}).el);  
   document.body.appendChild(view3.set({count:32}).el);  
   document.body.appendChild(view4.set({count:32}).el);  
 });
-*/
+
 </script>
 
 <script id="ExampleTemplate" type="text/html">
