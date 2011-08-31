@@ -33,18 +33,15 @@ var view = new PiewPiew.View({
     age : function() {
       return this.get("age", 0) + " years";
     }
-  }
-});
-
-
-var myModel = new PiewPiew.Model({
-  
+  } 
 }).set({
-    name: "Brendan",
-    age:  33, 
-  });
-
-view.setModel(myModel);
+  model : new PiewPiew.Model({
+    defaults : {
+      name  : "Steve",
+      age   : 23
+    }
+  })
+});
 
 $(function() {
 document.body.appendChild(view.render().el);

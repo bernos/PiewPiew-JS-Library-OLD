@@ -10,8 +10,6 @@
    */
   var _templateCache = {};
 
-
-
   PiewPiew.View = PiewPiew.Class(PiewPiew.PropertyManager, {
     initialize: function(spec) {
       // Call supers' constructor
@@ -57,8 +55,8 @@
       }
 
       // View needs to listen to itself for changes and re-render
-      this.bind(PiewPiew.View.events.CHANGE, PiewPiew.createDelegate(this, function(changes){
-        this.render();
+      this.bind(PiewPiew.View.events.CHANGE, PiewPiew.createDelegate(this, function(view, changes){
+        this.handleSelfChange(changes);
       }));
 
       // Initialise DOM event handlers. Handlers may have been declared as 
@@ -119,7 +117,7 @@
     getModel: function() {
       return this._model;
     },
-
+/*
     setModel: function(model) {
       // Relase existing model, if we have one
       if (this._model && this._model.unbind) {
@@ -154,7 +152,7 @@
       this.set(attributes);
 
       return this;        
-    },
+    },*/
 
     renderTemplate: function(templateContext, callback) {
       // If we have already resolved our template, then we can render and 
@@ -284,7 +282,7 @@ console.log("NEW context ", context);
       return false;
     },
 
-    handleModelChange: function(model, changes) {
+    handleModelChange: function(changes) {
       console.log("NEW view heard ", changes);
 
       var attributes = {};
@@ -300,6 +298,46 @@ console.log("NEW context ", context);
       if (trigger) {
         this.set(attributes);
       }
+    },
+
+    handleSelfChange: function(changes) {
+      console.log("handleSelfChange", changes);
+      if (changes.model) {
+        // Relase existing model, if we have one
+        if (this._model && this._model.unbind) {
+          this._model.unbind(PiewPiew.Model.events.CHANGE, this._modelChangeDelegate);
+        }
+
+        // Update ref to model
+        this._model = changes.model;
+        this._modelChangeDelegate = null;
+
+        // Bind to model change event
+        if (this._model && this._model.bind) {
+          this._modelChangeDelegate = PiewPiew.createDelegate(
+            this, 
+            function(model, changes) {
+              this.handleModelChange(changes);
+            }            
+          );
+          this._model.bind(PiewPiew.Model.events.CHANGE, this._modelChangeDelegate); 
+        }
+
+        // If we have any model interests, then we need to sync our local
+        // properties with the new model now...
+        var attributes = {};
+
+        for(var i = 0, l = this.modelInterests.length; i < l; i++) {
+          var n = this.modelInterests[i];
+          attributes[n] = this._model.get(n);
+        }
+
+        console.log("NEW view will now set ", attributes);
+
+        this.set(attributes);
+      }
+
+      this.render();
     }
   });
 
