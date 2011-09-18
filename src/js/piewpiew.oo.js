@@ -9,24 +9,34 @@
     var parent  = null;
     
     /**
-     * A default constructor
+     * Default constructor for our new class. All classes created using the PiewPiew.Class() method
+     * will share this constructor.
+     *
      */
-    var klass   = function() {
+    var klass = function() {
       // FIXME: This method of calling $super only works for single tiered inheritance. Anything further
       // down the inheritance chain overwrites the value of $super which can result in methods being called
       // recursively
       this.$super = function(method, args) {
         return this.$parent[method].apply(this, args);
-      }
+      };
       this.initialize.apply(this, arguments);
     };
-
+    
+    /**
+     * If the first argument is a function, assume it is the "class" from which the new class will inherit.
+     * In this case the second argument is an object containing the methods and properties for the new class.
+     *
+     * If the first argument is not a function, then we interpret it as an object containing the methods
+     * and properties of the new class
+     */
     if (typeof arguments[0] === 'function') {
       parent = arguments[0];
       methods = arguments[1];
     } else {
       methods = arguments[0];
     }
+
 
     if (parent) {
       extend(klass.prototype, parent.prototype);
@@ -59,5 +69,5 @@
 
   PiewPiew.Class = function() {
     return create.apply(this, arguments);  
-  }
+  };
 })(PiewPiew);
