@@ -34,6 +34,8 @@
      *  Any properties for which there is no "setter" method will be ignored.
      */
     initialize: function(initialProperties) {
+      this._handlers = {};
+
       for (var o in initialProperties) {
         var setter = "set" + o.slice(0,1).toUpperCase() + o.slice(1);
         if (typeof this[setter] === 'function') {
@@ -106,7 +108,68 @@
       var value = this._properties[name];
 
       return (null !== value) ? value : defaultValue;
-    } 
+    },
+
+    /**
+     * Binds an event handler
+     *
+     * @param {String} ev
+     *  Name of the event
+     * @param {Function} handler
+     *  Reference to the handler function
+     * @return {PiewPiew.Base}
+     *  A reference to the instance, useful for method chaining
+     */
+    bind: function(ev, handler) {
+      var l = this._handlers[ev] || (this._handlers[ev] = []);
+      l.push(handler);
+      return this;
+    },
+
+    /**
+     * Unbinds an event handler
+     *
+     * @param {String} ev
+     *  Then name of the event
+     * @param {Function} handler
+     *  The handler to unbind
+     * @return {PiewPiew.Base}
+     *  A reference to the instance, useful for method chaining
+     */
+    unbind: function(ev, handler) {
+      if(!ev) {
+        this._handlers = {};
+      } else if (!handler) {
+        this._handlers[ev] = [];
+      } else if (this._handlers[ev]) {
+        var l = this._handlers[ev];
+        for (var i = l.length - 1; i > -1; i--) {
+          if (l[i] === handler) {
+            l.splice(i,1);
+            return this;
+          }
+        }
+      }                 
+      return this;
+    },
+
+    /**
+     * Triggers and event to be dispatched. Any number of parameters can
+     * follow the ev param and they will be sent as arguments to the event
+     * handlers.
+     *
+     * @param {String} ev
+     *  Then name of the event to dispatch
+     */
+    trigger: function(ev) {
+      var l;
+      if (l = this._handlers[ev]) {
+        for (var i = 0, m = l.length; i < m; i++) {
+          l[i].apply(this, Array.prototype.slice.call(arguments, 1));
+        }
+      }
+      return this;
+    }
   });
 })(PiewPiew);
 
