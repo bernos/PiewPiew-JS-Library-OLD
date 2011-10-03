@@ -1,7 +1,54 @@
 /**
- * This is the "base" class for the PiewPiew library.
+ * This is the "base" class for the PiewPiew library. All classes in the library
+ * extend from this base class. 
+ * 
+ * PiewPiew.Base is where we define the event subsystem, via the bind(), 
+ * unbind() and trigger() methods. This means that all classes in the library
+ * support event binding and triggering.
  */
 (function(PiewPiew) {
+
+  /**
+   * Helper method for determining whether an object has a dedicated getter
+   * method for a named property
+   *
+   * @param {Object} obj
+   *  The object to test
+   * @param {String} prop
+   *  The name of the property to test for
+   * @return {Function}
+   *  Either a reference to the getter method, or null if it does not exist
+   */
+  function findGetter(obj, prop) {
+    var getter = "get" + prop.slice(0,1).toUpperCase() + prop.slice(1);
+
+    if (typeof obj[getter] === "function") {
+      return obj[getter];
+    }
+
+    return null;
+  }
+
+  /**
+   * Helper method for determining whether an object has a dedicated setter
+   * method for a named property
+   *
+   * @param {Object} obj
+   *  The object to test
+   * @param {String} prop
+   *  The name of the property to test for
+   * @return {Function}
+   *  Either a reference to the setter method, or null if it does not exist
+   */
+  function findSetter(obj, prop) {
+    var setter = "set" + prop.slice(0,1).toUpperCase() + prop.slice(1);
+
+    if (typeof obj[setter] === "function") {
+      return obj[setter];
+    }
+
+    return null;
+  }
 
   PiewPiew.Base = PiewPiew.Class({
     
@@ -36,12 +83,7 @@
     initialize: function(initialProperties) {
       this._handlers = {};
 
-      for (var o in initialProperties) {
-        var setter = "set" + o.slice(0,1).toUpperCase() + o.slice(1);
-        if (typeof this[setter] === 'function') {
-          this[setter](initialProperties[o]);
-        }        
-      }
+      this.set(initialProperties);
     },
 
     /**
@@ -62,9 +104,7 @@
      * </code>
      */
     set: function() {
-      if (null === this._properties) {
-        this._properties = {};
-      }
+      this._properties = this._properties || {};
 
       var values = {};
 
@@ -75,10 +115,10 @@
       }
 
       for (var name in values) {
-        var setter = "set" + name.slice(0,1).toUpperCase() + name.slice(1);
+        var setter = findSetter(this, name);
 
-        if (typeof this[setter] === "function") {
-          this[setter](values[name]);
+        if (setter) {
+          setter.apply(this, [values[name]]);
         } else if (this._properties[name] !== values[name]) {
           this._properties[name] = values[name];
         }
@@ -99,10 +139,10 @@
      *  Either the value of the requested property, or the default.
      */
     get: function(name, defaultValue) {
-      var getter = "get" + name.slice(0,1).toUpperCase() + name.slice(1);
+      var getter = findGetter(this, name);
 
-      if (typeof this[getter] === "function") {
-        return this[getter]();
+      if (getter) {
+        return getter.apply(this, [name])
       }
 
       var value = this._properties[name];

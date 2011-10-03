@@ -6,7 +6,20 @@
 <script type="text/javascript" src="js/piewpiew-%build.number%.js"></script>
 <script type="text/javascript">
 
+var PP = PiewPiew.Class(PiewPiew.Base, {
+  setName: function(value) {
+    
+    this._name = value;
+    return this;
+  },
 
+  getName: function() {
+    return this._name;
+  }
+
+});
+
+var p = new PP();
 
 var MyClass = function(name) {
   var _name = name;
