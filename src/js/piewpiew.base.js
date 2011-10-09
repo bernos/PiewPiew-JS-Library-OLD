@@ -104,9 +104,11 @@
      * </code>
      */
     set: function() {
-      this._properties = this._properties || {};
+      var values  = {}, 
+          changed = false, 
+          changes = {};
 
-      var values = {};
+      this._properties = this._properties || {};
 
       if (arguments.length == 2) {
         values[arguments[0]] = arguments[1];
@@ -121,7 +123,13 @@
           setter.apply(this, [values[name]]);
         } else if (this._properties[name] !== values[name]) {
           this._properties[name] = values[name];
+          changed = true;
+          changes[name] = values[name];
         }
+      }
+
+      if (changed) {
+        this.handleChanges(changes);
       }
 
       return this;     
@@ -148,6 +156,18 @@
       var value = this._properties[name];
 
       return (null !== value) ? value : defaultValue;
+    },
+
+    /**
+     * Handles property changes.
+     *
+     * @param {Object} changes
+     *  An object containing name-value pairs of all the changed properties
+     */
+    handleChanges: function(changes){
+      // Base implementation does nothing. Inheriting classes could trigger change events
+      // and so forth.
+      return this;
     },
 
     /**
