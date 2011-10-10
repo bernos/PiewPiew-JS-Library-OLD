@@ -69,11 +69,11 @@
                 files="piewpiew.js,
                        piewpiew.oo.js,
                        piewpiew.base.js,
+                       piewpiew.ui.view.js,
                        piewpiew.eventdispatcher.js,
                        piewpiew.propertymanager.js,
                        piewpiew.stringbundle.js,
                        piewpiew.templatecontext.js,
-                       piewpiew.view.js,
                        piewpiew.model.js"/>      
     </concat>
     <!-- get rid of unconcatenated js. -->
