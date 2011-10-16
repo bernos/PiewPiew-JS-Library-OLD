@@ -8,6 +8,23 @@
   };
 
   /**
+   * Simple string formatting function. Replaces all occurances of ${token}
+   * with values from a context object.
+   *
+   * @param {String} str
+   *  The input string, containing tokens to be replace.
+   * @param {Object} o
+   *  Token values to be substituted into the input string.
+   * @return {String}
+   */
+  pp.printf = function(str, o) {
+    for (var t in o) {
+      str = str.replace("${" + t + "}", o[t]);
+    }
+    return str;
+  };
+
+  /**
    * Extends one object by adding properties from another object
    * 
    * @alias PiewPiew.extend
