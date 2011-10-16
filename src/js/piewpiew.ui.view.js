@@ -1,9 +1,26 @@
-(function(PiewPiew){
+(function(PiewPiew) {
+
+  // LOCAL VARS ////////////////////////////////////////////////////////////////
+
   var __viewId = 0;
+
+  // HELPER FUNCTIONS //////////////////////////////////////////////////////////
+
+  // MODULE DEFS ///////////////////////////////////////////////////////////////
 
   PiewPiew.UI = PiewPiew.UI || {};
 
+  // CLASS DEFS ////////////////////////////////////////////////////////////////
+
+  /**
+   * @class 
+   */
   PiewPiew.UI.View = PiewPiew.Class(PiewPiew.Base, {
+
+    // PUBLIC PROPERTIES ///////////////////////////////////////////////////////
+
+    // GETTERS AND SETTERS /////////////////////////////////////////////////////
+
     /**
      * Get the css classes for the view
      *
@@ -28,6 +45,17 @@
     setClasses: function(classes){
       this.getEl().setAttribute("class", classes.join(" "));
       return this;
+    },
+
+    /**
+     * Returns sensible defaults for all view properties. Classes that extend 
+     * PiewPiew.View should override this implementation and return their own 
+     * defaults
+     *
+     * @return {Object}
+     */
+    getDefaults: function(){
+      return {};
     },
 
     /**
@@ -68,6 +96,8 @@
       return this._el.nodeName.toLowerCase();
     },
 
+    // PUBLIC METHODS //////////////////////////////////////////////////////////
+
     /**
      * Initialise the View instance
      *
@@ -85,26 +115,11 @@
 
       var merged = PiewPiew.extend(base, this.getDefaults(), spec || {});
 
-      // Set up the DOM element for the view as early as possible...
-      if (null == merged.el) {
-        merged.el = document.createElement(merged.tagname);
-      }
+      // Initialize the DOM element
+      this._initializeEl(merged);
 
-      this._el = merged.el;
-
-      // Make sure that the el has an id, or that an id value has been provided.
-      if (null == this._el.getAttribute("id")) {
-        if (null == merged.id) {
-          this._el.setAttribute("id", "piewpiew-view-" + (__viewId++));
-        } else {
-          this._el.setAttribute("id", merged.id);
-        }
-      }
-
-      // Merge any classes that may already be set on the el with classes from
-      // the spec
-      var current = this.getClasses();
-      this.setClasses(current.concat(merged.classes));
+      // Initialize event handlers.
+      this._initializeHandlers(merged);
 
       // Delete the provided el and id from the initialisation object otherwise
       // we'll end up attempting to set them again during the rest of the 
@@ -113,19 +128,9 @@
       delete merged.id;
       delete merged.tagname;
       delete merged.classes;
+      delete merged.handlers;
 
       PiewPiew.Base.prototype.initialize.apply(this, [merged]);   
-    },
-
-    /**
-     * Returns sensible defaults for all view properties. Classes that extend 
-     * PiewPiew.View should override this implementation and return their own 
-     * defaults
-     *
-     * @return {Object}
-     */
-    getDefaults: function(){
-      return {};
     },
 
     /**
@@ -149,13 +154,41 @@
         {id:this.getId()}
       );
     },
+
+    toJSON: function() {
+      return {
+        id: this.getId(),
+        classes: this.getClasses(),
+        tagname: this.getTagname()
+      }
+    },  
     
-    _initializeEl: function() {
+    // PRIVATE METHODS /////////////////////////////////////////////////////////
+
+    _initializeEl: function(spec) {
+      // Set up the DOM element for the view as early as possible...
+      if (null == spec.el) {
+        el = document.createElement(spec.tagname);
+      }
+
+      this._el = el;
+
+      // Make sure that the el has an id, or that an id value has been provided.
+      if (null == el.getAttribute("id")) {
+        if (null == spec.id) {
+          el.setAttribute("id", "piewpiew-view-" + (__viewId++));
+        } else {
+          el.setAttribute("id", spec.id);
+        }
+      }
       
+      // Add any classes to the element
+      var current = this.getClasses();
+      this.setClasses(current.concat(spec.classes));
     },
     
-    setHandlers: function(handlers) {
-      console.log("setHandlers",handlers);
+    _initializeHandlers: function(spec) {
+      var handlers  = spec.handlers;
       var delegates = {};
       var el        = $(this.getEl());
 
@@ -192,11 +225,7 @@
       }
 
       this._handlers = handlers;
-    },
-    
-    getHandlers: function() {
-      return this._handlers || {};
-    }   
+    },     
   });
 
   /**

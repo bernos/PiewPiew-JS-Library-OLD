@@ -1,21 +1,54 @@
 <!doctype html>
 <head>
-<script type="text/javascript" src="https://www.google.com/jsapi?key=ABQIAAAAY-Lo7xQQjw2KtaKDgwLbFBShyhCcQbTnWyZZb_B2QMXxZCh9kxTQY6MXPrS0KhZmYBqjlgEVQ18rHg"></script>
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
-<script type="text/javascript" src="js/vendor/mustache.js"></script>
-<script type="text/javascript" src="js/piewpiew-%build.number%.js"></script>
-<script type="text/javascript">
-var el = document.createElement("span");
-el.setAttribute("id", "asdf");
-var myView = new PiewPiew.View({
-  el: el,
-  classes: ["widget"],
-  tagname: "ul"
-});
-
-</script>
-
+  <script type="text/javascript" src="https://www.google.com/jsapi?key=ABQIAAAAY-Lo7xQQjw2KtaKDgwLbFBShyhCcQbTnWyZZb_B2QMXxZCh9kxTQY6MXPrS0KhZmYBqjlgEVQ18rHg"></script>
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
+  <script type="text/javascript" src="js/vendor/mustache.js"></script>
+  <script type="text/javascript" src="js/piewpiew.js"></script>
+  <script type="text/javascript" src="js/piewpiew.oo.js"></script>
+  <script type="text/javascript" src="js/piewpiew.base.js"></script>
+  <script type="text/javascript" src="js/piewpiew.ui.view.js"></script>
+  <script type="text/javascript" src="js/piewpiew.ui.templatableview.js"></script>
 </head>
 <body>
 
+
+  <script type="text/javascript">
+    var el = document.createElement("span");
+
+    var MyView = PiewPiew.Class(PiewPiew.UI.TemplatableView, {
+
+      template: '<a href="#" class="button">View: {{id}}</a>',
+     
+      handlers: {
+        'click a.button' : 'handleClick',
+        'click a.button2' : 'handleOtherClick' 
+      },
+
+      handleClick: function() {
+        alert("Click from " + this.getId());
+      },
+
+      handleOtherClick: function() {
+        alert("Other click");
+      }
+    })
+
+    var myView = new MyView({
+      id : "myView",
+      
+      el:el,
+
+      toJSON: function() {
+        var o = PiewPiew.UI.View.toJSON.apply(this);
+        o.name = "Brendan";
+
+        return o;
+      }
+
+      
+    });
+
+    myView.render();
+    document.body.appendChild(myView.getEl());
+  </script>
 </body>
