@@ -1,12 +1,8 @@
-/**
- * This is the "base" class for the PiewPiew library. All classes in the library
- * extend from this base class. 
- * 
- * PiewPiew.Base is where we define the event subsystem, via the bind(), 
- * unbind() and trigger() methods. This means that all classes in the library
- * support event binding and triggering.
- */
 (function(PiewPiew) {
+
+  // LOCAL VARS ////////////////////////////////////////////////////////////////
+
+  // HELPER FUNCTIONS //////////////////////////////////////////////////////////
 
   /**
    * Helper method for determining whether an object has a dedicated getter
@@ -50,40 +46,47 @@
     return null;
   }
 
-  PiewPiew.Base = PiewPiew.Class({
-    
-    /**
-     * Initializes a PiewPiew.Base class instance. This function is called 
-     * automatically during during construction of new instances. User classes
-     * which override this function should call this implementation by calling 
-     * <code>PiewPiew.Base.initialize.apply(this, arguments);</code>
-     *
-     * @param {Object} initialProperties
-     *  An object containing a set of initial values for the class instance
-     *  properties. If the class instance has "setter" methods for any of these
-     *  properties, they will be called. In the example below, the setModel() 
-     *  method of the Car class would be called during initialisation of the 
-     *  sportsCar Car instance.
-     *
-     *  <code>
-     *  var Car = PiewPiew.Class(PiewPiew.Base, {
-     *    setModel: function(model) {
-     *      this._model = model;
-     *      this.doOtherStuff();
-     *    }
-     *  });
-     *
-     *  var sportsCar = new Car({
-     *    model: "Ferrari"
-     *  });
-     *  </code>
-     *
-     *  Any properties for which there is no "setter" method will be ignored.
-     */
-    initialize: function(initialProperties) {
-      this._handlers = {};
+  // MODULE DEFS ///////////////////////////////////////////////////////////////
 
-      this.set(initialProperties);
+  // CLASS DEFS ////////////////////////////////////////////////////////////////
+
+  /**
+   * This is the "base" class for the PiewPiew library. All classes in the 
+   * library extend from this base class. 
+   * 
+   * PiewPiew.Base is where we define the event subsystem, via the bind(), 
+   * unbind() and trigger() methods. This means that all classes in the library
+   * support vent binding and triggering.
+   *
+   * @class
+   */
+  PiewPiew.Base = PiewPiew.Class({
+
+    // PUBLIC PROPERTIES ///////////////////////////////////////////////////////
+
+    // GETTERS AND SETTERS /////////////////////////////////////////////////////
+
+    /**
+     * Gets the value of a particular property. If the class instance has a
+     * dedicated "getter" method, it will be called.
+     *
+     * @param {String} name
+     *  The name of the property to get
+     * @param {Object} default
+     *  The default value to be returned if the requested property is not set
+     * @return {Object}
+     *  Either the value of the requested property, or the default.
+     */
+    get: function(name, defaultValue) {
+      var getter = findGetter(this, name);
+
+      if (getter) {
+        return getter.apply(this, [name])
+      }
+
+      var value = this._properties[name];
+
+      return (null !== value) ? value : defaultValue;
     },
 
     /**
@@ -135,40 +138,41 @@
       return this;     
     },
 
+    // PUBLIC METHODS //////////////////////////////////////////////////////////
+    
     /**
-     * Gets the value of a particular property. If the class instance has a
-     * dedicated "getter" method, it will be called.
+     * Initializes a PiewPiew.Base class instance. This function is called 
+     * automatically during during construction of new instances. User classes
+     * which override this function should call this implementation by calling 
+     * <code>PiewPiew.Base.initialize.apply(this, arguments);</code>
      *
-     * @param {String} name
-     *  The name of the property to get
-     * @param {Object} default
-     *  The default value to be returned if the requested property is not set
-     * @return {Object}
-     *  Either the value of the requested property, or the default.
-     */
-    get: function(name, defaultValue) {
-      var getter = findGetter(this, name);
-
-      if (getter) {
-        return getter.apply(this, [name])
-      }
-
-      var value = this._properties[name];
-
-      return (null !== value) ? value : defaultValue;
-    },
-
-    /**
-     * Handles property changes.
+     * @param {Object} initialProperties
+     *  An object containing a set of initial values for the class instance
+     *  properties. If the class instance has "setter" methods for any of these
+     *  properties, they will be called. In the example below, the setModel() 
+     *  method of the Car class would be called during initialisation of the 
+     *  sportsCar Car instance.
      *
-     * @param {Object} changes
-     *  An object containing name-value pairs of all the changed properties
+     *  <code>
+     *  var Car = PiewPiew.Class(PiewPiew.Base, {
+     *    setModel: function(model) {
+     *      this._model = model;
+     *      this.doOtherStuff();
+     *    }
+     *  });
+     *
+     *  var sportsCar = new Car({
+     *    model: "Ferrari"
+     *  });
+     *  </code>
+     *
+     *  Any properties for which there is no "setter" method will be ignored.
      */
-    handleChanges: function(changes){
-      // Base implementation does nothing. Inheriting classes could trigger change events
-      // and so forth.
-      return this;
-    },
+    initialize: function(initialProperties) {
+      this._handlers = {};
+
+      this.set(initialProperties);
+    },   
 
     /**
      * Binds an event handler
@@ -184,8 +188,38 @@
       var l = this._handlers[ev] || (this._handlers[ev] = []);
       l.push(handler);
       return this;
+    },    
+
+    /**
+     * Handles property changes.
+     *
+     * @param {Object} changes
+     *  An object containing name-value pairs of all the changed properties
+     */
+    handleChanges: function(changes){
+      // Base implementation does nothing. Inheriting classes could trigger change events
+      // and so forth.
+      return this;
     },
 
+    /**
+     * Triggers and event to be dispatched. Any number of parameters can
+     * follow the ev param and they will be sent as arguments to the event
+     * handlers.
+     *
+     * @param {String} ev
+     *  Then name of the event to dispatch
+     */
+    trigger: function(ev) {
+      var l;
+      if (l = this._handlers[ev]) {
+        for (var i = 0, m = l.length; i < m; i++) {
+          l[i].apply(this, Array.prototype.slice.call(arguments, 1));
+        }
+      }
+      return this;
+    },
+    
     /**
      * Unbinds an event handler
      *
@@ -211,25 +245,10 @@
         }
       }                 
       return this;
-    },
-
-    /**
-     * Triggers and event to be dispatched. Any number of parameters can
-     * follow the ev param and they will be sent as arguments to the event
-     * handlers.
-     *
-     * @param {String} ev
-     *  Then name of the event to dispatch
-     */
-    trigger: function(ev) {
-      var l;
-      if (l = this._handlers[ev]) {
-        for (var i = 0, m = l.length; i < m; i++) {
-          l[i].apply(this, Array.prototype.slice.call(arguments, 1));
-        }
-      }
-      return this;
     }
+
+    // PRIVATE METHODS /////////////////////////////////////////////////////////
+    
   });
 })(PiewPiew);
 
