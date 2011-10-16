@@ -1,78 +1,118 @@
 (function(PiewPiew){
   var __viewId = 0;
 
-  PiewPiew.View = PiewPiew.Class(PiewPiew.Base, {
-    
-    getId: function() {
-      var el = this.getEl();
-      var id = el.getAttribute("id");
+  PiewPiew.UI = PiewPiew.UI || {};
 
-      // If no id was set on our element, we'll set one now. Just to make sure
-      // that we actually have an id
-      if (id == null) {
-        el.setAttribute("id", "piewpiew-view-" + (__viewId++));
+  PiewPiew.UI.View = PiewPiew.Class(PiewPiew.Base, {
+    /**
+     * Get the css classes for the view
+     *
+     * @return {array}
+     */
+    getClasses: function() {
+      var a = this.getEl().getAttribute("class");
+      console.log(a);
+      if (typeof a == "string") {
+        return a.split(" ");
       }
 
-      return el.getAttribute("id");
+      return [];
     },
 
+    /**
+     * Set the css classes for the view
+     *
+     * @param {array} classes
+     * @return {PiewPiew.View}
+     */
+    setClasses: function(classes){
+      this.getEl().setAttribute("class", classes.join(" "));
+      return this;
+    },
+
+    /**
+     * Gets the root DOM element of the view
+     *
+     * @return {DOMElement}
+     */
+    getEl: function() {
+      return this._el;
+    },
+
+    /**
+     * Gets the id of the view
+     *
+     * @return {string}
+     */
+    getId: function() {
+      return this.getEl().getAttribute("id");
+    },
+
+    /**
+     * Sets the id of the view
+     *
+     * @param {string} id
+     * @return {PiewPiew.View}
+     */
     setId: function(id) {
       this.getEl().setAttribute("id", id);      
       return this;
     },
 
-    getEl: function() {
-      if (!this._el) {
-        this._el = document.createElement(this.get("tagname"));
-        this._el.setAttribute("id", this.getId());
-
-        this.get("classes").unshift("piewpiew-view");
-        this._el.setAttribute("class", this.get("classes").join(" "));
-      }
-      return this._el;
+    /**
+     * Gets the tag name of the DOM element of the view
+     *
+     * @return {string}
+     */
+    getTagname: function() {
+      return this._el.nodeName.toLowerCase();
     },
 
-    setEl: function(el) {
-      if (null != el) {
-        if (null != this._el) {
-          throw new Error("Attempt to change the element associated with a PiewPiew.View instance.");
-        } else {
-          this._el = el;
-        }
-      }
-    },
-
+    /**
+     * Initialise the View instance
+     *
+     * @param {object} spec
+     * @return {PiewPiew.View}
+     */
     initialize: function(spec) {
-      // Some absolute defaults
+      // Some absolute defaults. Some defaults such as handlers and classes may
+      // come from properties set on the actual class prototype itself.
       var base = {
-        tagname: "div",
-        classes: []
+        tagname:  "div",
+        classes:  this.classes || [],
+        handlers: this.handlers || []
       };
 
       var merged = PiewPiew.extend(base, this.getDefaults(), spec || {});
 
-      // If an element was provided, we'll explicitly set it now. This will 
-      // avoid a situation where we inadvertantly create a new el via any 
-      // indirect calls to getEl() before this._el has been initialised.
-      if (null != merged.el) {
-        this.setEl(merged.el);
-        
-        // Make sure that the provided el has an id, or that an id value has
-        // been provided.
-        if (null == merged.el.getAttribute("id")) {
-          if (null == merged.id) {
-            merged.el.setAttribute("id", "piewpiew-view-" + (__viewId++));
-          } else {
-            merged.el.setAttribute("id", merged.id);
-          }
-        }
-
-        // Delete the provided el and id from the initialisation object otherwise
-        // we'll end up attempting to set them again during the rest of the 
-        // instance initialisation lifecycle.
-        delete merged.el;
-        delete merged.id;
+      // Set up the DOM element for the view as early as possible...
+      if (null == merged.el) {
+        merged.el = document.createElement(merged.tagname);
       }
+
+      this._el = merged.el;
+
+      // Make sure that the el has an id, or that an id value has been provided.
+      if (null == this._el.getAttribute("id")) {
+        if (null == merged.id) {
+          this._el.setAttribute("id", "piewpiew-view-" + (__viewId++));
+        } else {
+          this._el.setAttribute("id", merged.id);
+        }
+      }
+
+      // Merge any classes that may already be set on the el with classes from
+      // the spec
+      var current = this.getClasses();
+      this.setClasses(current.concat(merged.classes));
+
+      // Delete the provided el and id from the initialisation object otherwise
+      // we'll end up attempting to set them again during the rest of the 
+      // instance initialisation lifecycle.
+      delete merged.el;
+      delete merged.id;
+      delete merged.tagname;
+      delete merged.classes;
 
       PiewPiew.Base.prototype.initialize.apply(this, [merged]);   
     },
@@ -88,14 +128,81 @@
       return {};
     },
 
+    /**
+     * Change handler. This is fired each time one of our view properties 
+     * changes. By default we simply re-render the view to ensure that the 
+     * display stays in sync with the view state.
+     *
+     * @param {Object} changes
+     *  Object containing key-value pairs of all the changed params
+     */
     handleChanges: function(changes) {
-      console.log("View has changed",changes);
       this.render();
     },
 
+    /**
+     * Renders the view. Custom view types should override this method
+     */
     render: function() {
-      console.log("Rendering ");
-      this.getEl().innerHTML = "HELLO";
-    }
+      this.getEl().innerHTML = PiewPiew.printf(
+        "<div><strong>id:</strong> ${id}</div>",
+        {id:this.getId()}
+      );
+    },
+    
+    _initializeEl: function() {
+      
+    },
+    
+    setHandlers: function(handlers) {
+      console.log("setHandlers",handlers);
+      var delegates = {};
+      var el        = $(this.getEl());
+
+      var createDelegate = function(e,o,h) {
+        return function() {
+          if (typeof o[h] == 'function') {
+            o[h].apply(o, arguments);
+          } else {
+            throw new Error("Handler '"+h+"' for event '"+e+"' does not exist in view "+o.getId());
+          }
+        }
+      }
+
+      for (var i in handlers) {
+        var t = i.split(" "),
+            e = t.shift(),
+            s = t.join(" "),
+            h = handlers[i];
+
+        delegates[s] = delegates[s] || {};
+
+        if (typeof h == 'string') {         
+          delegates[s][e] = createDelegate(e,this,h);
+        } else if (typeof h == 'function') {
+          delegates[s][e] = h;
+        } else {
+          throw new Error("Handler for event '"+e+"' must be a string or a function.");
+        }
+      }
+
+      for (var s in delegates) {
+        console.log(s);
+        el.delegate(s, delegates[s]);
+      }
+
+      this._handlers = handlers;
+    },
+    
+    getHandlers: function() {
+      return this._handlers || {};
+    }   
   });
+
+  /**
+   * Only used by unit tests. Resets the internal view id counter
+   */
+  PiewPiew.UI.View.resetId = function() {
+    __viewId = 0;
+  }
 })(PiewPiew);
