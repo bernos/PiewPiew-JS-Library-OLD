@@ -20,12 +20,7 @@
 
     getParser: function(){
       if (!this._parser) {
-        this.setParser(function(str, context) {
-          for (var token in context) {
-            str = str.replace("${" + token + "}", context[token]);
-          }
-          return str;
-        });
+        this.setParser(PiewPiew.printf);
       }
       return this._parser;
     },
