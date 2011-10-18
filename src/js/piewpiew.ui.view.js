@@ -48,17 +48,6 @@
     },
 
     /**
-     * Returns sensible defaults for all view properties. Classes that extend 
-     * PiewPiew.View should override this implementation and return their own 
-     * defaults
-     *
-     * @return {Object}
-     */
-    getDefaults: function(){
-      return {};
-    },
-
-    /**
      * Gets the root DOM element of the view
      *
      * @return {DOMElement}
@@ -104,7 +93,7 @@
      * @param {object} spec
      * @return {PiewPiew.View}
      */
-    initialize: function(spec) {
+    /*initialize: function(spec) {
       // Some absolute defaults. Some defaults such as handlers and classes may
       // come from properties set on the actual class prototype itself.
       var base = {
@@ -113,7 +102,7 @@
         handlers: this.handlers || []
       };
 
-      var merged = PiewPiew.extend(base, this.getDefaults(), spec || {});
+      var merged = PiewPiew.extend(base, spec || {});
 
       // Initialize the DOM element
       this._initializeEl(merged);
@@ -131,6 +120,27 @@
       delete merged.handlers;
 
       PiewPiew.Base.prototype.initialize.apply(this, [merged]);   
+    },*/
+
+    initializeWithSpec: function(spec) {
+      spec.tagname  = spec.tagname || (this.tagname || "div");
+      spec.classes  = spec.classes || (this.classes || []);
+      spec.handlers = spec.handlers || (this.handlers || []);
+
+      // Initialize the DOM element
+      this._initializeEl(spec);
+
+      // Initialize event handlers.
+      this._initializeHandlers(spec);
+
+      // Delete the provided el and id from the initialisation object otherwise
+      // we'll end up attempting to set them again during the rest of the 
+      // instance initialisation lifecycle.
+      delete spec.el;
+      delete spec.id;
+      delete spec.tagname;
+      delete spec.classes;
+      delete spec.handlers;
     },
 
     /**

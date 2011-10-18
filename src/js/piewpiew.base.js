@@ -146,7 +146,7 @@
      * which override this function should call this implementation by calling 
      * <code>PiewPiew.Base.initialize.apply(this, arguments);</code>
      *
-     * @param {Object} initialProperties
+     * @param {Object} spec
      *  An object containing a set of initial values for the class instance
      *  properties. If the class instance has "setter" methods for any of these
      *  properties, they will be called. In the example below, the setModel() 
@@ -168,11 +168,26 @@
      *
      *  Any properties for which there is no "setter" method will be ignored.
      */
-    initialize: function(initialProperties) {
+    initialize: function(spec) {
       this._handlers = {};
 
-      this.set(initialProperties);
+      this.initializeWithSpec(spec || {});
+
+      this.set(spec);
     },   
+
+    /**
+     * Called during initialization, this is a good place for inheritting
+     * classes to parse the spec object and handle any special cases or 
+     * properties that need specialised initializing. For example we might
+     * want to copy a property from the spec to a local instance property,
+     * rather than letting it go through to the default set() method
+     *
+     * @param {Object} spec
+     */
+    initializeWithSpec: function(spec) {
+      // base implementation does nothing
+    },
 
     /**
      * Binds an event handler
