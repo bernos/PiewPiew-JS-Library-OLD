@@ -10,14 +10,21 @@
   <script type="text/javascript" src="js/piewpiew.ui.templatableview.js"></script>
 </head>
 <body>
-
+  <script id="tmpl-myView" type="text/mustache">
+    <h1>View</h1>
+    <div>{{id}}</div>
+  </script>
 
   <script type="text/javascript">
     var el = document.createElement("span");
 
     var MyView = PiewPiew.Class(PiewPiew.UI.TemplatableView, {
 
-      template: '<a href="#" class="button">View: {{id}}</a>',
+      template: '<a href="#" class="button">OOOH: {{id}}</a>',
+
+      templateSelector: "#tmpl-myView",
+
+      templateUrl: "ExampleView.html",
      
       handlers: {
         'click a.button' : 'handleClick',
@@ -36,6 +43,10 @@
     var myView = new MyView({
       id : "myView",
       
+      //template: "hello",
+
+
+
       el:el,
 
       toJSON: function() {
