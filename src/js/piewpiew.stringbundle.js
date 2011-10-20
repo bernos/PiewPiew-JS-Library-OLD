@@ -5,14 +5,10 @@
  * StringBundle can also handle multiple locales.
  ****************************************************************************/
 (function(PiewPiew){
-  
-  PiewPiew.StringBundle = PiewPiew.Class(PiewPiew.Base, {
 
-    initialize: function(spec){
-      this._strings = {};
-      PiewPiew.Base.prototype.initialize.apply(this, [spec]);
-    
-    },
+  var _strings = {};
+  
+  PiewPiew.StringBundle = {
 
     setParser: function(parser) {
       this._parser = parser;
@@ -38,11 +34,11 @@
         locale = PiewPiew.locale;
       }
       
-      if(!this._strings[locale]) {
-        this._strings[locale] = {};
+      if(!_strings[locale]) {
+        _strings[locale] = {};
       }
       
-      this._strings[locale] = PiewPiew.extend(this._strings[locale], strings);
+      _strings[locale] = PiewPiew.extend(_strings[locale], strings);
       
       return this;
     },
@@ -63,8 +59,8 @@
     getString: function(key, context, defaultValue, parse) {
       var p = this.getParser();
 
-      if (this._strings[PiewPiew.locale] && this._strings[PiewPiew.locale][key]) {
-        return p(this._strings[PiewPiew.locale][key], context);
+      if (_strings[PiewPiew.locale] && _strings[PiewPiew.locale][key]) {
+        return p(_strings[PiewPiew.locale][key], context);
       }
       
       if (defaultValue) {
@@ -85,8 +81,8 @@
      *  The requested string or the key if the string does not exist
      */
     getRawString: function(key) {
-      if (this._strings[PiewPiew.locale] && this._strings[PiewPiew.locale][key]) {
-        return this._strings[PiewPiew.locale][key];
+      if (_strings[PiewPiew.locale] && _strings[PiewPiew.locale][key]) {
+        return _strings[PiewPiew.locale][key];
       }
             
       return key;
@@ -110,5 +106,5 @@
         }
       });
     }
-  });  
+  };  
 })(PiewPiew);
