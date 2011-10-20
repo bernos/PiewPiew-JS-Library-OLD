@@ -88,40 +88,9 @@
     // PUBLIC METHODS //////////////////////////////////////////////////////////
 
     /**
-     * Initialise the View instance
-     *
-     * @param {object} spec
-     * @return {PiewPiew.View}
+     * @name initializeWithSpec
+     * @methodOf PiewPiew.UI.View#
      */
-    /*initialize: function(spec) {
-      // Some absolute defaults. Some defaults such as handlers and classes may
-      // come from properties set on the actual class prototype itself.
-      var base = {
-        tagname:  "div",
-        classes:  this.classes || [],
-        handlers: this.handlers || []
-      };
-
-      var merged = PiewPiew.extend(base, spec || {});
-
-      // Initialize the DOM element
-      this._initializeEl(merged);
-
-      // Initialize event handlers.
-      this._initializeHandlers(merged);
-
-      // Delete the provided el and id from the initialisation object otherwise
-      // we'll end up attempting to set them again during the rest of the 
-      // instance initialisation lifecycle.
-      delete merged.el;
-      delete merged.id;
-      delete merged.tagname;
-      delete merged.classes;
-      delete merged.handlers;
-
-      PiewPiew.Base.prototype.initialize.apply(this, [merged]);   
-    },*/
-
     initializeWithSpec: function(spec) {
       spec.tagname  = spec.tagname || (this.tagname || "div");
       spec.classes  = spec.classes || (this.classes || []);
@@ -141,24 +110,31 @@
       delete spec.tagname;
       delete spec.classes;
       delete spec.handlers;
+
+      this.set(spec);
+
+      this._initialized = true;
     },
 
     /**
      * Change handler. This is fired each time one of our view properties 
-     * changes. By default we simply re-render the view to ensure that the 
-     * display stays in sync with the view state.
+     * changes. By default if the view has completed initializing, we simply 
+     * re-render ensure that the display stays in sync with the view state.
      *
      * @param {Object} changes
      *  Object containing key-value pairs of all the changed params
      */
     handleChanges: function(changes) {
-      this.render();
+      if (this._initialized) {
+        this.render();
+      }      
     },
 
     /**
      * Renders the view. Custom view types should override this method
      */
     render: function() {
+      console.log("render");
       this.getEl().innerHTML = PiewPiew.printf(
         "<div><strong>id:</strong> ${id}</div>",
         {id:this.getId()}
@@ -179,6 +155,8 @@
       // Set up the DOM element for the view as early as possible...
       if (null == spec.el) {
         el = document.createElement(spec.tagname);
+      } else {
+        el = spec.el;
       }
 
       this._el = el;
@@ -201,8 +179,9 @@
       var handlers  = spec.handlers;
       var delegates = {};
       var el        = $(this.getEl());
+      var view      = this;
 
-      var createDelegate = function(e,o,h) {
+      var createDelegateFromString = function(e,o,h) {
         return function() {
           if (typeof o[h] == 'function') {
             o[h].apply(o, arguments);
@@ -210,7 +189,13 @@
             throw new Error("Handler '"+h+"' for event '"+e+"' does not exist in view "+o.getId());
           }
         }
-      }
+      };
+
+      var createDelegateFromFunction = function(o,h) {
+        return function() {
+          h.apply(o,arguments);
+        }
+      };
 
       for (var i in handlers) {
         var t = i.split(" "),
@@ -221,9 +206,9 @@
         delegates[s] = delegates[s] || {};
 
         if (typeof h == 'string') {         
-          delegates[s][e] = createDelegate(e,this,h);
+          delegates[s][e] = createDelegateFromString(e,this,h);
         } else if (typeof h == 'function') {
-          delegates[s][e] = h;
+          delegates[s][e] = createDelegateFromFunction(this,h);
         } else {
           throw new Error("Handler for event '"+e+"' must be a string or a function.");
         }

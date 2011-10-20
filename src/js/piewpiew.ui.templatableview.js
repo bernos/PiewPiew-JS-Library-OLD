@@ -5,6 +5,29 @@
   var _templateCache = {};
 
   // HELPER FUNCTIONS //////////////////////////////////////////////////////////
+  function loadExternalTemplate(url, callback) {
+    // See if we already have a cached copy of the template
+    if (_templateCache[url]) {
+      if (callback) {
+        callback(_templateCache[url]);
+      }
+    } else {
+      $.ajax(url, {
+        dataType:'html',
+        error:function(jqXHR, textStatus, errorThrown) {
+          if (callback) {
+            callback(null);
+          }
+        },
+        success: function(data) {
+          _templateCache[url] = data;
+          if (callback) {
+            callback(data);
+          }
+        }
+      });        
+    }
+  }
 
   // MODULE DEFS ///////////////////////////////////////////////////////////////
 
@@ -19,42 +42,6 @@
     template: "View: {{id}}",
 
     // GETTERS AND SETTERS /////////////////////////////////////////////////////
-/*
-    getTemplate: function() {
-      if (null == this._tmpl) {
-        this._tmpl = "no template for this view";
-      }
-      return this._tmpl;
-    },
-
-    setTemplate: function(tmpl) {
-      this._clearTemplate();
-      this._tmpl = tmpl;
-      this.render();
-    },
-
-    getTemplateUrl: function() {
-      return this._templateUrl;
-    },
-
-    setTemplateUrl: function(url) {
-      this._clearTemplate();
-      this._templateUrl = url;
-
-      // TODO: stop loading existing template url
-
-      this.render();
-    },
-
-    getTemplateSelector: function() {
-      return this._templateSelector;
-    },
-
-    setTemplateSelector: function(selector) {
-      this._clearTemplate();
-      this._templateSelector = selector;
-      this.render();
-    },*/
 
     // PUBLIC METHODS //////////////////////////////////////////////////////////
 
@@ -72,10 +59,13 @@
 
     render: function() {
       var that = this;
+      var context = new PiewPiew.UI.TemplateContext(this.toJSON());
 
-      this.renderTemplate(this.toJSON(), function(content) {
+      this.renderTemplate(context, function(content) {
         that.getEl().innerHTML = content;
-      })
+      });
+
+      return this;
     },
 
     renderTemplate: function(context, callback) {
@@ -92,7 +82,11 @@
       else if (this.templateUrl && !this._templateLoaded && !this._templateLoading) {
         var that = this;
 
-        this._loadExternalTemplate(this.templateUrl, function(template) {
+        loadExternalTemplate(this.templateUrl, function(template) {
+
+          that._templateLoaded  = true;
+          that._templateLoading = false;
+
           if (template) {
             // Store the loaded template to speed up future calls to 
             // renderTemplate()
@@ -134,43 +128,7 @@
 
     _clearTemplate: function(){
       this._template = null;
-    },
-
-    _loadExternalTemplate: function(url, callback) {
-      // See if we already have a cached copy of the template
-      if (_templateCache[url]) {
-        this._templateLoaded  = true;
-        this._templateLoading = false;
-        if (callback) {
-          callback(_templateCache[url]);
-        }
-      } else {
-
-        var that = this;
-
-        $.ajax(url, {
-          dataType:'html',
-          error:function(jqXHR, textStatus, errorThrown) {
-            that._templateLoaded   = true;
-            that._templateLoading  = false;
-            
-            if (callback) {
-              callback(null);
-            }
-          },
-          success: function(data) {
-            that._templateLoaded   = true;
-            that._templateLoading  = false;
-            _templateCache[url] = data;
-
-            if (callback) {
-              callback(data);
-            }
-          }
-        });        
-      }
     }
-
   });
 
   /**
