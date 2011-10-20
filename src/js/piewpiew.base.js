@@ -68,7 +68,7 @@
 
     /**
      * Gets the value of a particular property. If the class instance has a
-     * dedicated "getter" method, it will be called.
+     * dedicated "getter" method, it will be called. 
      *
      * @param {String} name
      *  The name of the property to get
@@ -76,6 +76,9 @@
      *  The default value to be returned if the requested property is not set
      * @return {Object}
      *  Either the value of the requested property, or the default.
+     *
+     * @name get
+     * @methodOf PiewPiew.Base#
      */
     get: function(name, defaultValue) {
       var getter = findGetter(this, name);
@@ -105,6 +108,9 @@
      *   height: 180
      * });
      * </code>
+     *
+     * @name set
+     * @methodOf PiewPiew.Base#
      */
     set: function() {
       var values  = {}, 
@@ -167,13 +173,14 @@
      *  </code>
      *
      *  Any properties for which there is no "setter" method will be ignored.
+     *
+     * @name initialize
+     * @methodOf PiewPiew.Base#
      */
     initialize: function(spec) {
       this._handlers = {};
 
       this.initializeWithSpec(spec || {});
-
-      this.set(spec);
     },   
 
     /**
@@ -184,6 +191,9 @@
      * rather than letting it go through to the default set() method
      *
      * @param {Object} spec
+     *
+     * @name initializeWithSpec
+     * @methodOf PiewPiew.Base#
      */
     initializeWithSpec: function(spec) {
       // base implementation does nothing
@@ -198,6 +208,9 @@
      *  Reference to the handler function
      * @return {PiewPiew.Base}
      *  A reference to the instance, useful for method chaining
+     *
+     * @name bind
+     * @methodOf PiewPiew.Base#
      */
     bind: function(ev, handler) {
       var l = this._handlers[ev] || (this._handlers[ev] = []);
@@ -210,6 +223,9 @@
      *
      * @param {Object} changes
      *  An object containing name-value pairs of all the changed properties
+     *
+     * @name handleChanges
+     * @methodOf PiewPiew.Base#
      */
     handleChanges: function(changes){
       // Base implementation does nothing. Inheriting classes could trigger change events
@@ -224,6 +240,9 @@
      *
      * @param {String} ev
      *  Then name of the event to dispatch
+     *
+     * @name trigger
+     * @methodOf PiewPiew.Base#
      */
     trigger: function(ev) {
       var l;
@@ -244,6 +263,9 @@
      *  The handler to unbind
      * @return {PiewPiew.Base}
      *  A reference to the instance, useful for method chaining
+     *
+     * @name unbind
+     * @methodOf PiewPiew.Base#
      */
     unbind: function(ev, handler) {
       if(!ev) {
