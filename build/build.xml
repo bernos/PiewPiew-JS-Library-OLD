@@ -67,7 +67,6 @@
       <!-- Order is important here -->
       <filelist dir="${dir.publish}/${dir.js}"
                 files="piewpiew.js,
-                       piewpiew.oo.js,
                        piewpiew.base.js,
                        piewpiew.ui.view.js,
                        piewpiew.eventdispatcher.js,

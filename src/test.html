@@ -4,10 +4,11 @@
   <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
   <script type="text/javascript" src="js/vendor/mustache.js"></script>
   <script type="text/javascript" src="js/piewpiew.js"></script>
-  <script type="text/javascript" src="js/piewpiew.oo.js"></script>
   <script type="text/javascript" src="js/piewpiew.base.js"></script>
+  <script type="text/javascript" src="js/piewpiew.stringbundle.js"></script>
   <script type="text/javascript" src="js/piewpiew.ui.view.js"></script>
   <script type="text/javascript" src="js/piewpiew.ui.templatableview.js"></script>
+  <script type="text/javascript" src="js/piewpiew.ui.templatecontext.js"></script>
 </head>
 <body>
   <script id="tmpl-myView" type="text/mustache">
@@ -16,20 +17,22 @@
   </script>
 
   <script type="text/javascript">
+
+    PiewPiew.StringBundle.setStrings({
+      title: "String {{id}} bundle"
+    });
+
     var el = document.createElement("span");
 
     var MyView = PiewPiew.Class(PiewPiew.UI.TemplatableView, {
 
-      template: '<a href="#" class="button">OOOH: {{id}}</a>',
+      template: '<a href="#" class="button">{{#stringBundle}}title{{/stringBundle}}</a>',
 
-      templateSelector: "#tmpl-myView",
+      //templateSelector: "#tmpl-myView",
 
-      templateUrl: "ExampleView.html",
+      //templateUrl: "ExampleView.html",
      
-      handlers: {
-        'click a.button' : 'handleClick',
-        'click a.button2' : 'handleOtherClick' 
-      },
+      
 
       handleClick: function() {
         alert("Click from " + this.getId());
@@ -49,17 +52,18 @@
 
       el:el,
 
-      toJSON: function() {
-        var o = PiewPiew.UI.View.toJSON.apply(this);
-        o.name = "Brendan";
+      handlers: {
+        'click a.button' : function() {
+          alert("Click from " + this.getId());
+        },
 
-        return o;
+        'click a.button2' : 'handleOtherClick' 
       }
 
       
     });
 
-    myView.render();
-    document.body.appendChild(myView.getEl());
+   
+    document.body.appendChild(myView.render().getEl());
   </script>
 </body>
