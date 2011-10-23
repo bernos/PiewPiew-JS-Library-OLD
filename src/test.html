@@ -4,11 +4,7 @@
   <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
   <script type="text/javascript" src="js/vendor/mustache.js"></script>
   <script type="text/javascript" src="js/piewpiew.js"></script>
-  <script type="text/javascript" src="js/piewpiew.base.js"></script>
-  <script type="text/javascript" src="js/piewpiew.stringbundle.js"></script>
-  <script type="text/javascript" src="js/piewpiew.ui.view.js"></script>
-  <script type="text/javascript" src="js/piewpiew.ui.templatableview.js"></script>
-  <script type="text/javascript" src="js/piewpiew.ui.templatecontext.js"></script>
+
 </head>
 <body>
   <script id="tmpl-myView" type="text/mustache">
@@ -16,54 +12,30 @@
     <div>{{id}}</div>
   </script>
 
+  <div id="content"></div>
+
   <script type="text/javascript">
+    var myList;
+  /*
+    piewpiew.require(["piewpiew.ui.View"], function(view) {
 
-    PiewPiew.StringBundle.setStrings({
-      title: "String {{id}} bundle"
-    });
 
-    var el = document.createElement("span");
+      var v = new view.View();
 
-    var MyView = PiewPiew.Class(PiewPiew.UI.TemplatableView, {
+      document.getElementById("content").appendChild(v.render().getEl());
+      console.log("view", v);
+    });*/
+  
+    piewpiew.require(["piewpiew.ui.TemplatableView", "piewpiew.data.list"], function(templatableView, list) {
+      console.log("view has loaded.");
 
-      template: '<a href="#" class="button">{{#stringBundle}}title{{/stringBundle}}</a>',
+      var v = new templatableView.TemplatableView();
 
-      //templateSelector: "#tmpl-myView",
+      document.getElementById("content").appendChild(v.render().getEl());
+      console.log("view", v);
 
-      //templateUrl: "ExampleView.html",
-     
-      
-
-      handleClick: function() {
-        alert("Click from " + this.getId());
-      },
-
-      handleOtherClick: function() {
-        alert("Other click");
-      }
+      myList = new list.List(['a', 'b', 'c']);
+      console.log("list", list);
     })
-
-    var myView = new MyView({
-      id : "myView",
-      
-      //template: "hello",
-
-
-
-      el:el,
-
-      handlers: {
-        'click a.button' : function() {
-          alert("Click from " + this.getId());
-        },
-
-        'click a.button2' : 'handleOtherClick' 
-      }
-
-      
-    });
-
-   
-    document.body.appendChild(myView.render().getEl());
   </script>
 </body>

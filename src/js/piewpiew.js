@@ -1,276 +1,242 @@
-/**
- * The PiewPiew module
- */
-
 (function(global) {
-  var PiewPiew = pp = module = {
-    VERSION: '0.0.1'
-  };
 
   /**
-   * Simple string formatting function. Replaces all occurances of ${token}
-   * with values from a context object.
-   *
-   * @param {String} str
-   *  The input string, containing tokens to be replace.
-   * @param {Object} o
-   *  Token values to be substituted into the input string.
-   * @return {String}
+   * Define the PiewPiew module
    */
-  pp.printf = function(str, o) {
-    for (var t in o) {
-      str = str.replace("${" + t + "}", o[t]);
-    }
-    return str;
-  };
+  var mod = function(exports) {
 
-  pp.Class = function() {
-    var methods = null,
-        parent  = null;
-    
+    exports.VERSION = "0.0.1";
+    exports.define  = define;
+    exports.require = require;
+    exports.modules = _modules;
+
     /**
-     * Default constructor for our new class. All classes created using the PiewPiew.Class() method
-     * will share this constructor.
-     */
-    var klass = function() {
-      this.initialize.apply(this, arguments);
-    };
-    
-    /**
-     * If the first argument is a function, assume it is the "class" from which the new class will inherit.
-     * In this case the second argument is an object containing the methods and properties for the new class.
+     * Simple string formatting function. Replaces all occurances of ${token}
+     * with values from a context object.
      *
-     * If the first argument is not a function, then we interpret it as an object containing the methods
-     * and properties of the new class
+     * @param {String} str
+     *  The input string, containing tokens to be replace.
+     * @param {Object} o
+     *  Token values to be substituted into the input string.
+     * @return {String}
      */
-    if (typeof arguments[0] === 'function') {
-      parent = arguments[0];
-      methods = arguments[1];
-    } else {
-      methods = arguments[0];
-    }
-
-
-    if (parent) {
-      klass.prototype = new parent();
-      //extend(klass.prototype, parent.prototype);
-    }
-
-    PiewPiew.extend(klass.prototype, methods);
-    klass.prototype.constructor = klass;
-
-    if (!klass.prototype.initialize) {
-      klass.prototype.initialize = function(){};
-    } 
-
-    return klass;
-  };
-
-
-
-
-
-
-  /**
-   * Extends one object by adding properties from another object
-   * 
-   * @alias PiewPiew.extend
-   * 
-   * @param {Object} object1
-   *  The object to extend
-   * @param {Object} object2
-   *  The extension object
-   * @param {Object} objectN
-   *  Another extension object
-   * @return {Object}
-   *  The extended object
-   */
-  module.extend = function(obj) {
-    var extensions = Array.prototype.slice.call(arguments, 1);
-
-    for (var i = 0; i < extensions.length; i++) {
-      for (var prop in extensions[i]) {
-        obj[prop] = extensions[i][prop];
+    exports.printf = function(str, o) {
+      for (var t in o) {
+        str = str.replace("${" + t + "}", o[t]);
       }
-    }    
-    return obj;
-  };
-  
-  /**
-   * Creates a method delegate. Enables us to specify the scope a function 
-   * should be run in when assigning and binding handlers.
-   * 
-   * @alias PiewPiew.createDelegate
-   * @param {object} obj
-   * @param {function} method
-   */
-  module.createDelegate = function(obj, method) {
-    return function() {
-      method.apply(obj, arguments);
+      return str;
     };
-  }; 
 
-  /**
-   * Parses a template string with the provided context. By default the PiewPiew
-   * library uses the Mustache templating library. Other templating libraries 
-   * can easily be supported by overriding PiewPiew.parseTemplate
-   *
-   * @param {string} template
-   *  The template string to parse
-   * @param {object} context
-   *  A context object containing variables and helper functions to use when
-   *  parsing the template
-   * @return {string}
-   *  The generated template output
-   */
-  module.parseTemplate = function(template, context) {
-    return Mustache.to_html(template, context);
-  };
+    /**
+     * Extends one object by adding properties from another object
+     * 
+     * @alias PiewPiew.extend
+     * 
+     * @param {Object} object1
+     *  The object to extend
+     * @param {Object} object2
+     *  The extension object
+     * @param {Object} objectN
+     *  Another extension object
+     * @return {Object}
+     *  The extended object
+     */
+    exports.extend = function(obj) {
+      var extensions = Array.prototype.slice.call(arguments, 1);
 
-  
+      for (var i = 0; i < extensions.length; i++) {
+        for (var prop in extensions[i]) {
+          obj[prop] = extensions[i][prop];
+        }
+      }    
+      return obj;
+    };
 
-  module.Extendable = function(baseType) {
-    baseType.extend = function(spec) {
-      var newType = function(options) {
-        return baseType(module.extend({}, spec, options));
-      }
-
-      module.Extendable(newType);
+    exports.Class = function() {
+      var methods = null,
+          parent  = null;
       
-      return newType;
+      /**
+       * Default constructor for our new class. All classes created using the PiewPiew.Class() method
+       * will share this constructor.
+       */
+      var klass = function() {
+        this.initialize.apply(this, arguments);
+      };
+      
+      /**
+       * If the first argument is a function, assume it is the "class" from which the new class will inherit.
+       * In this case the second argument is an object containing the methods and properties for the new class.
+       *
+       * If the first argument is not a function, then we interpret it as an object containing the methods
+       * and properties of the new class
+       */
+      if (typeof arguments[0] === 'function') {
+        parent = arguments[0];
+        methods = arguments[1];
+      } else {
+        methods = arguments[0];
+      }
+
+
+      if (parent) {
+        klass.prototype = new parent();
+        //extend(klass.prototype, parent.prototype);
+      }
+
+      piewpiew.extend(klass.prototype, methods);
+      klass.prototype.constructor = klass;
+
+      if (!klass.prototype.initialize) {
+        klass.prototype.initialize = function(){};
+      } 
+
+      return klass;
     };
-    return baseType;
+
+    /**
+     * Creates a method delegate. Enables us to specify the scope a function 
+     * should be run in when assigning and binding handlers.
+     * 
+     * @alias PiewPiew.createDelegate
+     * @param {object} obj
+     * @param {function} method
+     */
+    exports.createDelegate = function(obj, method) {
+      return function() {
+        method.apply(obj, arguments);
+      };
+    };
+
+    if (global.piewpiew) {
+      throw new Error("PiewPiew has already been defined.");
+    } else {
+      global.piewpiew = exports;
+    }
+
   };
-  
-  
 
-  
+  /**
+   * Storage for tracking module dependencies
+   */
+  var _dependencyMap = [];
 
-  module.List = function(items) {
-    var _items = (items || []).slice(0);
+  /**
+   * Storage for loaded piewpiew modules
+   */
+  var _modules = {
 
-    return extend({
-      length: 0,
+  };
 
-      getItems: function() {
-        return _items;
-      },
+  /**
+   * Processes the dependency map. Compares the loaded modules against
+   * the dependencies defined in the dependency map.
+   */
+  function resolveModuleDependencies() {
+    for (var i = 0, m = _dependencyMap.length; i < m; i++) {
+      if (_dependencyMap[i]) {
+        // if all dependencies for the current cb are defined, then
+        // execute the callback, and remove this entry from the
+        // dependencymap...
+        var deps        = _dependencyMap[i]['dependencies'];
+        var callback    = _dependencyMap[i]['callback'];
+        var loadedDeps  = [];
 
-      getItemAt: function(index) {
-        return _items[index];
-      },
-
-      addItem: function(item) {
-        _items.push(item);
-        this.length = _items.length;
-        this.trigger(PiewPiew.List.events.ITEM_ADDED, this, item);
-        return this;
-      },
-
-      addItemAt: function(item, index) {
-        _items.splice(index, 0, item);
-        this.length = _items.length;
-        this.trigger(PiewPiew.List.events.ITEM_ADDED, this, item);
-        return this;
-      },
-
-      removeItem: function(item) {
-        var i = this.indexOf(item);
-
-        if (i > -1) {
-          _items.splice(i, 1);
-          this.length = _items.length;
-          this.trigger(PiewPiew.List.events.ITEM_REMOVED, this, item);
-          return item;
-        }
-
-        return null;
-      },
-
-      removeItemAt: function(index) {
-        if (index > -1 && index < _items.length) {
-          var item = _items.splice(index, 1)[0];
-          this.length = _items.length;
-          this.trigger(PiewPiew.List.events.ITEM_REMOVED, this, item);
-          return item;
-        }
-        return null;
-      },
-
-      each: function(callback) {
-        for (var i = 0, l = _items.length; i < l; i++) {
-          callback.apply(_items[i]);
-        }
-        return this;
-      },
-
-      indexOf: function(item) {
-        if (_items.indexOf) {
-          return _items.indexOf(item);
-        }
-
-        for (var i = 0, l = _items.length; i < l; i++) {
-          if (_items[i] === item) {
-            return i;
+        for (var j = 0, jm = deps.length; j < jm; j++) {
+          // There are some special cases for dependencies in the AMD
+          // specification. These are the "require", "exports" and "module"
+          // dependencies.
+          if (deps[j] == "exports") {
+            loadedDeps.push({});
+          } else if (deps[j] == "require") {
+            loadedDeps.push(require);
+          } else if (deps[j] == "module") {
+            //
+          } else if (null != _modules[deps[j]] && _modules[deps[j]]['status'] == "LOADED") {
+            loadedDeps.push(_modules[deps[j]]['exports']);
           }
         }
 
-        return -1;
-      }
-    
-    }, new PiewPiew.EventDispatcher());
+        if (loadedDeps.length == deps.length) {          
+          // All deps are loaded, so we can call the callback now
+          // remove the object from the dependencyMap
+          _dependencyMap.splice(i,1);
+          callback.apply(this, loadedDeps);
+        }
+      }     
+    }
   }
 
-  module.List.events = {
-    ITEM_ADDED:   "PiewPiew.model.events.ITEM_ADDED",
-    ITEM_REMOVED: "PiewPiew.model.events.ITEM_REMOVED" 
+
+
+  function require(modules, callback) {
+    console.log("require", modules);
+    
+    if (typeof modules == "string") {
+      if (_modules[modules]) {
+        return _modules[modules]['exports'];
+      }
+      return null;
+    }
+
+    _dependencyMap.push({
+      callback:callback, 
+      dependencies:modules
+    });
+
+    for(var i = 0, m = modules.length; i < m; i++) {
+      var mod = modules[i];
+
+      // TODO: if mod is require or exports or module
+      // dont load it as an external script...
+
+      if (mod != "require" && mod != "exports" && mod != "module" && !_modules[mod]) {
+        _modules[mod] = {
+          status: "LOADING"
+        };   
+        console.log("modules = ", _modules);
+
+        // Attach script element here...
+        var s = document.createElement("script");
+        s.setAttribute("type","text/javascript");
+
+        // TODO: Base path should be changeable
+        s.setAttribute("src", "js/" + mod + ".js");
+
+        document.getElementsByTagName("head")[0].appendChild(s);
+      }      
+    }
+
+    // Check module dependencies
+    resolveModuleDependencies(); 
   };
+
+
+
+  function define(id, dependencies, factory) {
+    require(dependencies, function() {
+      var exports = null;
+
+      for (var i = 0, m = dependencies.length; i < m; i++) {
+        if (dependencies[i] == "exports") {
+          exports = arguments[i];
+          break;
+        }
+      }
+
+      _modules[id] = {
+        status:  "LOADED",
+        exports: exports
+      };
+
+      factory.apply(factory, arguments);
+
+      resolveModuleDependencies();
+    });   
+  };  
+
+  define("piewpiew", ["exports"], mod);
 
   
-
-  module.ListView = function(spec) {
-    var _model = null;
-
-    var _itemAddedHandler = null;
-
-    return PiewPiew.View(extend({
-      itemContainer: '',
-      tagname: 'ul',
-      itemView: PiewPiew.View,
-
-      setModel: function(model) {
-        var that = this;
-        // unlike regular views we are really only interested in add and remove
-        // events.
-
-        _model = model;
-
-        _itemAddedHandler = PiewPiew.createDelegate(this, function(list, item) {
-          console.log("added", list, item);
-          that.appendItem(item);
-        });
-
-        _model.bind(PiewPiew.List.events.ITEM_ADDED, _itemAddedHandler);
-      },
-
-      appendItem: function(item) {
-        // instantiate the appropriate view type, set item as the views model
-        // then render the view, and append to our itemContainer
-        var view = PiewPiew.View({
-          tagname:"li"
-        });
-        view.setModel(item);
-
-        $(this.el).append(view.render().el);
-      }
-    }, spec || {}));
-  };
-
-
-  if (global.PiewPiew) {
-    throw new Error("PiewPiew has already been defined.");
-  } else {
-    global.PiewPiew = PiewPiew;
-  }
 })(typeof window === 'undefined' ? this : window);
 
