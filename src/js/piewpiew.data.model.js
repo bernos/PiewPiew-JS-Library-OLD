@@ -35,10 +35,10 @@
 
     exports.BuildModel = function(model) {
       return base.Base.extend({
-        initialize: function(spec) {
+        initializeWithSpec: function(spec) {
           for (var name in model) {
             this[name] = model[name]();
-
+console.log("creating ", spec);
             if (spec[name]) {
               this[name].value = spec[name];
               delete spec[name];
