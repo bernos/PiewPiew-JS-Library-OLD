@@ -18,8 +18,8 @@
     /**
      * @class 
      */
-    exports.View = piewpiew.Class(base.Base, {
-
+    //exports.View = piewpiew.Class(base.Base, {
+    exports.View = base.Base.extend({
       // PUBLIC PROPERTIES ///////////////////////////////////////////////////////
 
       // GETTERS AND SETTERS /////////////////////////////////////////////////////

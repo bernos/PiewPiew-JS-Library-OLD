@@ -1,4 +1,4 @@
-(function(PiewPiew){
+(function(global){
 
   var moduleId = "piewpiew.data.Model";
   var requires = ["exports", "piewpiew", "piewpiew.Base"];
@@ -12,7 +12,7 @@
 
     // CLASS DEFS ////////////////////////////////////////////////////////////////
 
-    exports.Model = piewpiew.Class(base.Base, {
+    exports.Model = base.Base.extend({
     
       // PUBLIC PROPERTIES ///////////////////////////////////////////////////////
     
@@ -31,9 +31,36 @@
 
     exports.Model.events = {
       CHANGE: "piewpiew.data.Model.events.CHANGE", 
-    }
+    };
+
+    exports.BuildModel = function(model) {
+      return base.Base.extend({
+        initialize: function(spec) {
+          for (var name in model) {
+            this[name] = model[name]();
+
+            if (spec[name]) {
+              this[name].value = spec[name];
+              delete spec[name];
+            }
+          }  
+
+
+        }
+      });
+    };
+
+    exports.CharField = function(opts) {
+      return function() {
+        return {
+          value:null,
+          maxLength:opts.maxLength
+        }
+      }
+    };
   };
 
   global.piewpiew.define(moduleId, requires, module);
   
 })(typeof window === 'undefined' ? this : window);
+

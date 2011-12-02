@@ -54,14 +54,17 @@
 
     exports.Class = function() {
       var methods = null,
-          parent  = null;
+          parent  = null,
+          initializing = true;
       
       /**
        * Default constructor for our new class. All classes created using the PiewPiew.Class() method
        * will share this constructor.
        */
       var klass = function() {
-        this.initialize.apply(this, arguments);
+        if(!initializing) {
+          this.initialize.apply(this, arguments);
+        }
       };
       
       /**
@@ -84,12 +87,18 @@
         //extend(klass.prototype, parent.prototype);
       }
 
+      initializing = false;
+
       piewpiew.extend(klass.prototype, methods);
       klass.prototype.constructor = klass;
 
       if (!klass.prototype.initialize) {
         klass.prototype.initialize = function(){};
       } 
+
+      klass.extend = function(o) {
+        return exports.Class(this, o);
+      }
 
       return klass;
     };

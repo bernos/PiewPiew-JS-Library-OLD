@@ -25,8 +25,10 @@
       document.getElementById("content").appendChild(v.render().getEl());
       console.log("view", v);
     });*/
+
+    var Person;
   
-    piewpiew.require(["piewpiew.ui.TemplatableView", "piewpiew.data.list"], function(templatableView, list) {
+    piewpiew.require(["piewpiew.ui.TemplatableView", "piewpiew.data.list", "piewpiew.data.Model"], function(templatableView, list, model) {
       console.log("view has loaded.");
 
       var v = new templatableView.TemplatableView();
@@ -36,6 +38,12 @@
 
       myList = new list.List(['a', 'b', 'c']);
       console.log("list", list);
+
+      Person = model.BuildModel({
+        name: model.CharField({
+          maxLength: 28
+        })
+      });
     })
   </script>
 </body>
