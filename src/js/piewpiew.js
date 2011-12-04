@@ -10,6 +10,10 @@
     exports.require = require;
     exports.modules = _modules;
 
+    // Used during class instantiation to prevent class intitialisation
+    // when assigning an instance of a class as prototype of a new class
+    var __initializing;
+
     /**
      * Simple string formatting function. Replaces all occurances of ${token}
      * with values from a context object.
@@ -54,8 +58,8 @@
 
     exports.Class = function() {
       var methods = null,
-          parent  = null,
-          initializing = true;
+          parent  = null;
+          
       
       /**
        * Default constructor for our new class. All classes created using the PiewPiew.Class() method
@@ -83,11 +87,13 @@
 
 
       if (parent) {
+        // Set the initializing flag to prevent the normal initialization methods firing when creating the
+        // new prototype object
+        initializing = true;
         klass.prototype = new parent();
         //extend(klass.prototype, parent.prototype);
+        initializing = false;
       }
-
-      initializing = false;
 
       piewpiew.extend(klass.prototype, methods);
       klass.prototype.constructor = klass;

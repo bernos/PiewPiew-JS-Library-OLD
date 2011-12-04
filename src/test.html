@@ -28,19 +28,10 @@
 
     var Person;
   
-    piewpiew.require(["piewpiew.ui.TemplatableView", "piewpiew.data.list", "piewpiew.data.Model"], function(templatableView, list, model) {
-      console.log("view has loaded.");
-
-      var v = new templatableView.TemplatableView();
-
-      document.getElementById("content").appendChild(v.render().getEl());
-      console.log("view", v);
-
-      myList = new list.List(['a', 'b', 'c']);
-      console.log("list", list);
-
-      Person = model.BuildModel({
-        name: model.CharField({
+    piewpiew.require(["piewpiew.data.Model"], function(model) {
+      
+      Person = model.Model.extend({
+        name: new model.CharField({
           maxLength: 28
         })
       });
