@@ -2,10 +2,22 @@
 	"folders":
 	[
 		{
-			"path": "/home/brendan/workspace/projects/PiewPiew-JS-Library"
+			"path": "/data/workspace/projects/PiewPiew-Parallax"
 		},
 		{
-			"path": "/data/workspace/projects/PiewPiew-Parallax"
+			"path": "/data/workspace/projects/FiniteStateMachine-JS"
+		},
+		{
+			"path": "/data/workspace/sandbox/css3-stuff"
+		},
+		{
+			"path": "/home/brendan/workspace/projects/saintjude.com.au"
+		},
+		{
+			"path": "/data/workspace/sandbox/django/mysite"
+		},
+		{
+			"path": "/home/brendan/workspace/projects/PiewPiew-JS-Library"
 		}
 	]
 }

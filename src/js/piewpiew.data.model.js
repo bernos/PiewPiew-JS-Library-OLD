@@ -1,9 +1,9 @@
 (function(global){
 
-  var moduleId = "piewpiew.data.Model";
-  var requires = ["exports", "piewpiew", "piewpiew.Base"];
+  var moduleId = "piewpiew.data.model";
+  var requires = ["exports", "piewpiew", "piewpiew.Base", "piewpiew.data.validators"];
 
-  var module = function(exports, piewpiew, base) {
+  var module = function(exports, piewpiew, base, validators) {
     // LOCAL VARS ////////////////////////////////////////////////////////////////
 
     // HELPER FUNCTIONS //////////////////////////////////////////////////////////
@@ -60,23 +60,77 @@
       CHANGE: "piewpiew.data.Model.events.CHANGE", 
     };
 
+    /**
+     * Base class for all model field types
+     */
+    exports.Field = piewpiew.Class({
+      required: false,
+      requiredMessage: "This is a required field",
+      invalidTypeMessage: "The value of this field is invalid",
 
-    exports.CharField = piewpiew.Class({
-    
       initialize: function(spec) {
+        spec = spec || {};
+
         for (var name in spec) {
           this[name] = spec[name];
         }
+
+        this.validators = spec.validators || {};
       },
 
       validate: function(value) {
-        console.log("validating " + value);
-        if (null != this.maxLength) {
-          return value.length <= this.maxLength;
+        // First validate the datatype
+        if (!this.validateType(value)) {
+          return [this.invalidTypeMessage];
+        }
+              
+        if (this.required && !this.validateRequired(value)) {
+          return [this.requiredMessage];
+        }
+         
+        var errors = [];
+
+        for (var v in this.validators) {
+          errors = errors.concat(this.validators[v].validate(value));
+        }
+
+        return errors;        
+      },
+
+      validateType: function(value) {
+        return true;  
+      },
+
+      validateRequired: function(value) {
+        if (null == value) {
+          return false;
         }
         return true;
       }
     });
+
+    /**
+     * CharField Class.
+     */
+    exports.CharField = exports.Field.extend({
+      invalidTypeMessage: "The value of this field must be a string",
+
+      validateType: function(value) {
+        return typeof value == "string";
+      },
+      validateRequired: function(value) {
+        return value.length > 0;
+      }
+    });
+
+    exports.NumberField = exports.Field.extend({
+      invalidTypeMessage: "The value of this field must be a number",
+
+      validateType: function(value) {
+        return !isNaN(value);
+      }
+    })
+    
 
   };
 

@@ -15,26 +15,23 @@
   <div id="content"></div>
 
   <script type="text/javascript">
-    var myList;
-  /*
-    piewpiew.require(["piewpiew.ui.View"], function(view) {
-
-
-      var v = new view.View();
-
-      document.getElementById("content").appendChild(v.render().getEl());
-      console.log("view", v);
-    });*/
-
-    var Person;
-  
-    piewpiew.require(["piewpiew.data.Model"], function(model) {
       
-      Person = model.Model.extend({
-        name: new model.CharField({
-          maxLength: 28
-        })
+    piewpiew.require(["piewpiew.data.model", "piewpiew.data.validators"], function(model, validators) {
+      // Test a validator
+      console.log("ready");
+
+      var field = new model.CharField({
+        required:true,
+        requiredMessage:"this is required mate",
+        invalidTypeMessage:"string mate, string",
+        validators:{
+          length: new validators.StringValidator({minLength:2, maxLength:4})
+        }
       });
+
+      console.log(field.validate("a"));
+      console.log(field.constructor);
+      
     })
   </script>
 </body>
