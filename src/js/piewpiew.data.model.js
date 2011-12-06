@@ -29,8 +29,32 @@
       },
     
       // PUBLIC METHODS //////////////////////////////////////////////////////////
+      initialize: function(spec) {
+        // Create default getters and setters for our fields
+        for (var field in this.fields) {
+          var getter = "get" + field.slice(0,1).toUpperCase() + field.slice(1);
+          var setter = "set" + field.slice(0,1).toUpperCase() + field.slice(1);
+
+          if (null == this[getter]) {
+            this[getter] = function() {
+              return this["_" + field];
+            }
+          }  
+
+          if (null == this[setter]) {
+            this[setter] = function(value) {
+              this["_" + field] = value;
+              return this;
+            }            
+          }                   
+        }
+
+        base.Base.prototype.initialize.apply(this, arguments);
+      },
+
       initializeWithSpec: function(spec) {
         for (var name in spec) {
+
           if (this.fields[name]) {
             this.set(name, spec[name]);
           }

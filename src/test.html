@@ -31,6 +31,15 @@
 
       console.log(field.validate("a"));
       console.log(field.constructor);
+
+      var Person = model.Model.extend({
+        name: new model.CharField()
+      });
+
+      var p = new Person();
+      console.log(p);
+      p.setName("bre");
+      console.log(p.getName());
       
     })
   </script>
