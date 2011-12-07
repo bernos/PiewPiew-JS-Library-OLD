@@ -33,16 +33,46 @@
       console.log(field.constructor);
 
       var Person = model.Model.extend({
-        name: new model.CharField()
+        name: "Person",
+
+        fields: {
+          firstName: new model.CharField({
+            validators: {
+              length: new validators.StringValidator({
+                minLength:2,
+                maxLength:12
+              })
+            }
+          }),
+          lastName: new model.CharField({
+            validators: { 
+              length: new validators.StringValidator({
+                minLength:2,
+                maxLength:12
+              })
+            }
+          })
+        },
+
+        getFullName: function() {
+          return this.getFirstName() + " " + this.getLastName();
+        }
+        
       });
+
+
 
       var p = new Person();
       console.log(p);
-      p.setName("bre");
-      console.log(p.getName());
+      p.setFirstName("brendan");
+      p.setLastName("mcmahon");
+      console.log(p.getFullName());
+     
 
-
-
+      p.objects.save(p);
+ console.log(p.toJSON());
+      console.log(p.objects.getModels());
+     console.log(p.constructor.modelname);
 
 
       

@@ -145,9 +145,7 @@
        * @methodOf PiewPiew.Base#
        */
       set: function() {
-        var values  = {}, 
-            changed = false, 
-            changes = {};
+        var values  = {};
 
         if (arguments.length == 2) {
           values[arguments[0]] = arguments[1];
@@ -261,6 +259,34 @@
        */
       initializeWithSpec: function(spec) {
         // base implementation does nothing
+      },
+
+      /**
+       * Serialises the object to simple JSON object. By default we return
+       * an object containing all properties return by our implicit and 
+       * explicit getters. We do this be assuming that all methods begining
+       * in 'get' containing more than 3 characters are explicit getters. 
+       * Any value returned by an explicit getter method will override a
+       * property of the same name returned by the getProperties() method. 
+       * Custom/inheriting classes may need to override this method.
+       *
+       * @name toJSON
+       * @methodOf PiewPiew.Base
+       */
+      toJSON: function() {
+        var o = this.getProperties();
+
+        for(var m in this) {
+          if (typeof this[m] == 'function' && 
+              m != 'getProperties' &&
+              m.indexOf('get') == 0 && 
+              m.length > 3) {
+
+                var p = m.slice(3,4).toLowerCase() + m.slice(4);
+                o[p] = this[m]();
+              }
+        }
+        return o;
       },
 
       /**

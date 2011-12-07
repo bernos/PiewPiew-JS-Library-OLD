@@ -15,6 +15,7 @@
     exports.Model = base.Base.extend({
     
       // PUBLIC PROPERTIES ///////////////////////////////////////////////////////
+
     
       // GETTERS AND SETTERS /////////////////////////////////////////////////////
 
@@ -22,28 +23,41 @@
       // PUBLIC METHODS //////////////////////////////////////////////////////////
       initialize: function(spec) {
         // Create default getters and setters for our fields
+        function createGetter(name) {
+          return function() {
+            return this.getProperties()[name];
+          }
+        }
+
+        function createSetter(name) {
+          return function(value) {
+            var errors = this.fields[name].validate(value);
+            if (errors.length == 0) {
+              this.setProperty(name, value);
+              return this;
+            } else{
+              console.log(errors);
+              throw errors.join(" ");
+            }  
+          }
+        }
+
         for (var field in this.fields) {
           var getter = "get" + field.slice(0,1).toUpperCase() + field.slice(1);
           var setter = "set" + field.slice(0,1).toUpperCase() + field.slice(1);
 
           if (null == this[getter]) {
-            this[getter] = function() {
-              return this.getProperties()[field];
-            }
+            this[getter] = createGetter(field);
           }  
 
           if (null == this[setter]) {
-            this[setter] = function(value) {
-              var errors = this.fields[field].validate(value);
-              if (errors.length == 0) {
-                this.setProperty(field, value);
-                return this;
-              } else{
-                console.log(errors);
-                throw errors.join(" ");
-              }              
-            }            
+            this[setter] = createSetter(field);            
           }                   
+        }
+
+        // Ensure that the model has an Id field
+        if (!this.getId) {
+          this.getId = createGetter("id");
         }
 
         base.Base.prototype.initialize.apply(this, arguments);
@@ -74,12 +88,45 @@
      * of the new model class prototype.
      */
     exports.Model.extend = function(model) {
-      return piewpiew.Class(this, {fields:model, modelName:"Fish"});
+      // All models must have a name!
+      if (!model.name) {
+        throw "Attempt to create a model without a 'name' property. Ensure that your custom model has a name.";
+      }
+
+      // We remove the "name" property from the model, as it may also have a field
+      // called "name". The value of the model name will be copied onto the models
+      // prototype as the "modelname" property
+      var modelname = model.name;
+      delete model.name;
+
+      model.objects = new exports.ModelManager();
+
+      var klass = piewpiew.Class(this, model);
+
+      klass.modelname = modelname;
+
+      return klass;
     }
 
     exports.Model.events = {
       CHANGE: "piewpiew.data.Model.events.CHANGE", 
     };
+
+    exports.ModelManager = piewpiew.Class({
+      initialize: function(spec) {
+        var models = [];
+
+        this.getModels = function() {
+          return models;
+        }
+      },
+
+      save: function(model) {
+        var models = this.getModels();
+        model.getProperties['id'] = models.length;
+        models.push(model);
+      }
+    });
 
     /**
      * Base class for all model field types
