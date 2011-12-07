@@ -17,16 +17,7 @@
       // PUBLIC PROPERTIES ///////////////////////////////////////////////////////
     
       // GETTERS AND SETTERS /////////////////////////////////////////////////////
-      set: function() {
-        // TODO: could be called with name, value args, or with an object containing
-        // many name, value args. In any case, consult this.fields for a field with
-        // the same name as the param we are about to set. If a field exists, ask
-        // it to validate the new value before setting it.
-      },
 
-      get: function(name) {
-        
-      },
     
       // PUBLIC METHODS //////////////////////////////////////////////////////////
       initialize: function(spec) {
@@ -37,14 +28,20 @@
 
           if (null == this[getter]) {
             this[getter] = function() {
-              return this["_" + field];
+              return this.getProperties()[field];
             }
           }  
 
           if (null == this[setter]) {
             this[setter] = function(value) {
-              this["_" + field] = value;
-              return this;
+              var errors = this.fields[field].validate(value);
+              if (errors.length == 0) {
+                this.setProperty(field, value);
+                return this;
+              } else{
+                console.log(errors);
+                throw errors.join(" ");
+              }              
             }            
           }                   
         }

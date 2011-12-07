@@ -63,6 +63,32 @@
      * unbind() and trigger() methods. This means that all classes in the library
      * support vent binding and triggering.
      *
+     * PiewPiew.Base also defines the core methods that implement our property 
+     * getter and setter pattern. PiewPiew.Base offers a couple of ways to set 
+     * object properties that will automatically trigger change events when values
+     * are actually changed. The property management API consists of the following
+     * methods
+     *
+     * get(name)
+     *    This is the generic getter method. It returns the value of the property 
+     *    identified by 'name'. If there is an explicit getter method 'getName()' 
+     *    it will be called, otherwise the default getter will be called
+     *
+     * set(name, value)
+     * set({name1:value1, name2:value2})
+     *    This is the generic setter method. It allows you to set one or more 
+     *    properties at a time. If any properties have explicit setter methods
+     *    'setName(value)' they will be called. When a call to this method results
+     *    in a property changing, the changed objects 'handleChanges()' method
+     *    be called, and passed an object containing name/value pairs of all the
+     *    changed properties.
+     *
+     * setProperty(name, value)
+     *    This is an internal method that should be used by developers when
+     *    implementing custom setter methods. It is also called by the set() 
+     *    methods described above. This method ensures that the handleChanges
+     *    method gets called correctly.
+     *
      * @class
      */
     exports.Base = piewpiew.Class({
@@ -87,12 +113,13 @@
        */
       get: function(name, defaultValue) {
         var getter = findGetter(this, name);
+        var properties = this.getProperties();
 
         if (getter) {
           return getter.apply(this, [name])
         }
 
-        var value = this._properties[name];
+        var value = properties[name];
 
         return (null !== value) ? value : defaultValue;
       },
@@ -122,31 +149,55 @@
             changed = false, 
             changes = {};
 
-        this._properties = this._properties || {};
-
         if (arguments.length == 2) {
           values[arguments[0]] = arguments[1];
         } else {
           values = arguments[0];
         }
 
+        // Set the _isChanging flag, to let handleChanges() know not to send
+        // change notifications until after all properties have been updated
+        this._isChanging = true;
+
         for (var name in values) {
           var setter = findSetter(this, name);
 
           if (setter) {
             setter.apply(this, [values[name]]);
-          } else if (this._properties[name] !== values[name]) {
-            this._properties[name] = values[name];
-            changed = true;
-            changes[name] = values[name];
+          } else {
+            setProperty(name, values[name]);
           }
         }
 
-        if (changed) {
-          this.handleChanges(changes);
-        }
+        this._isChanging = false;
 
+        this.onChanged(changes);
+    
         return this;     
+      },
+
+      /**
+       * Sets the value of a named property. This is the foundational property
+       * setting method. Any calls to set() end up here. Any user defined setXXX
+       * methods should also call this method internally to set property values.
+       * 
+       * @property {String} name
+       *  name of the property to set
+       * @property {Object} value
+       *  value of the property
+       *
+       * @name setProperty
+       * @methodOf PiewPiew.Base#
+       */ 
+      setProperty: function(name, value) {
+        var properties = this.getProperties();
+
+        if (properties[name] != value) {
+          properties[name] = value;
+          this.onChanged({
+            name: value
+          });
+        }
       },
 
       // PUBLIC METHODS //////////////////////////////////////////////////////////
@@ -183,6 +234,14 @@
        * @methodOf PiewPiew.Base#
        */
       initialize: function(spec) {
+        // create private storage for properties and an accessor method for
+        // retrieval
+        var properties = {};
+
+        this.getProperties = function() {
+          return properties;
+        }
+
         this._handlers = {};
 
         this.initializeWithSpec(spec || {});
@@ -224,6 +283,30 @@
       },    
 
       /**
+       * Called when properties have changed
+       *
+       * @param {Object} changes
+       *  An object containing name-value pairs of all the changed properties
+       *
+       * @name onChanged
+       * @methodOf PiewPiew.Base#
+       */
+      onChanged: function(changes){
+        this._pendingChanges = this._pendingChanges || {};
+
+        for (var n in changes) {
+          this._pendingChanges[n] = changes[n];
+        }
+
+        if (!this._isChanging) {
+          this.handleChanges(this._pendingChanges);
+          this._pendingChanges = {};  
+        }
+
+        return this;
+      },
+
+      /**
        * Handles property changes.
        *
        * @param {Object} changes
@@ -232,10 +315,8 @@
        * @name handleChanges
        * @methodOf PiewPiew.Base#
        */
-      handleChanges: function(changes){
-        // Base implementation does nothing. Inheriting classes could trigger change events
-        // and so forth.
-        return this;
+      handleChanges: function(changes) {
+        // default implementation does nothing
       },
 
       /**
