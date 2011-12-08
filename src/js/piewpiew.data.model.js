@@ -75,6 +75,10 @@
       handleChanges: function(changes){
         this.trigger(exports.Model.events.CHANGE, changes);
         return this;
+      },
+
+      save: function(callback) {
+        this.objects.save(this, callback);
       }
 
       // PRIVATE METHODS /////////////////////////////////////////////////////////
@@ -82,28 +86,26 @@
     });
 
     /**
-     * Override the default extension method for building new model classes. We
-     * do this simply to keep the model creation syntax clean, rather than having
-     * to remember to assign all our field definitions to the "fields" property
-     * of the new model class prototype.
+     * Override the default extension method for building new model classes. Model
+     * class creation has some associated setup requirements, such as provisioning
+     * a ModelManager instance to look after each model class and so on.
      */
     exports.Model.extend = function(model) {
-      // All models must have a name!
-      if (!model.name) {
-        throw "Attempt to create a model without a 'name' property. Ensure that your custom model has a name.";
+      // All models must have a modelName!
+      if (!model.modelName) {
+        throw "Attempt to create a model without a 'modelName' property. Ensure that your custom model has a name.";
       }
 
-      // We remove the "name" property from the model, as it may also have a field
-      // called "name". The value of the model name will be copied onto the models
-      // prototype as the "modelname" property
-      var modelname = model.name;
-      delete model.name;
+      // Create the model class
+      var klass = piewpiew.Class(this, model);   
 
-      model.objects = new exports.ModelManager();
-
-      var klass = piewpiew.Class(this, model);
-
-      klass.modelname = modelname;
+      // Create a ModelManager for this model class. Attaching the Manager to the
+      // prototype ensures that all instances of this model will refer to the same
+      // model
+      klass.prototype.objects = new exports.ModelManager({
+        modelClass: klass,
+        modelName: model.modelName
+      });      
 
       return klass;
     }
@@ -112,6 +114,12 @@
       CHANGE: "piewpiew.data.Model.events.CHANGE", 
     };
 
+    /**
+     * Model Manager class. Each model class has associated model manager, responsible
+     * for tracking, loading and saving model instances. We do not normally directly
+     * instantiate models, rather we access them through model a instances "objects"
+     * property.
+     */
     exports.ModelManager = piewpiew.Class({
       initialize: function(spec) {
         var models = [];
@@ -119,12 +127,25 @@
         this.getModels = function() {
           return models;
         }
+
+        for(var name in spec) {
+          this[name] = spec[name];
+        }
       },
 
-      save: function(model) {
+      save: function(model, callback) {
         var models = this.getModels();
-        model.getProperties['id'] = models.length;
+        model.getProperties()['id'] = models.length;
         models.push(model);
+        callback(model);
+      },
+
+      // TODO: allow to be called with only spec or only callback
+      create: function(spec, callback) {
+        var model = new this.modelClass(spec);
+        model.save(function(model) {
+          callback(model);
+        });
       }
     });
 

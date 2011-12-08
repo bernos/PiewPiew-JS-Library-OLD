@@ -33,7 +33,7 @@
       console.log(field.constructor);
 
       var Person = model.Model.extend({
-        name: "Person",
+        modelName: "Person",
 
         fields: {
           firstName: new model.CharField({
@@ -69,11 +69,13 @@
       console.log(p.getFullName());
      
 
-      p.objects.save(p);
- console.log(p.toJSON());
-      console.log(p.objects.getModels());
-     console.log(p.constructor.modelname);
+      p.save(function(model){
+        console.log("SAVED MODEL ", model.toJSON());
+      });
 
+      p.objects.create({}, function(model) {
+        console.log("Created model ", model.toJSON());
+      });
 
       
     })
