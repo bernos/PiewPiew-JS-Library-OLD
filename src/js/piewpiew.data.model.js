@@ -99,13 +99,13 @@
 
       // Create the model class
       var klass = piewpiew.Class(this, model);   
+          klass.modelName = model.modelName;
 
       // Create a ModelManager for this model class. Attaching the Manager to the
       // prototype ensures that all instances of this model will refer to the same
       // model
       klass.prototype.objects = new exports.ModelManager({
-        modelClass: klass,
-        modelName: model.modelName
+        modelClass: klass
       });      
 
       return klass;
@@ -116,6 +116,23 @@
     };
 
     /**
+     * Variable to hold our storate adaptor
+     */
+    var adaptor = null;
+
+    exports.Model.getStorageAdaptor = function() {
+      if (!adaptor) {
+        this.setStorageAdaptor(new exports.InMemoryStorageAdaptor());
+      }
+      return adaptor;
+    };
+
+    exports.Model.setStorageAdaptor = function(newAdaptor) {
+      adaptor = newAdaptor;
+      return this
+    };
+
+    /**
      * Model Manager class. Each model class has associated model manager, responsible
      * for tracking, loading and saving model instances. We do not normally directly
      * instantiate models, rather we access them through model a instances "objects"
@@ -123,59 +140,42 @@
      */
     exports.ModelManager = piewpiew.Class({
       initialize: function(spec) {
-        // Our array of managed models
-        var models = [];
-
-        this.getModels = function() {
-          return models;
-        }
-
         for(var name in spec) {
           this[name] = spec[name];
         }
-      },
+      },      
 
       // TODO: allow arg to be either a function, or 
       // some simple kind of object containing matching criteria
-      filter: function(fn) {
-        var q = new exports.QuerySet();
-            q.results = this.getModels().slice(0);
-
-        return q.filter(fn);
+      filter: function(callback) {
+        return new exports.QuerySet({
+          modelManager: this
+        }).filter(callback);
       },
 
       all: function(callback) {
-        var q = new exports.QuerySet();
-            q.results = this.getModels().slice(0);
-
-        return q.all(callback);
+        return new exports.QuerySet({
+          modelManager: this
+        }).all(callback);
       },
 
       each: function(callback) {
-        var q = new exports.QuerySet();
-            q.results = this.getModels().slice(0);
-
-        return q.each(callback);
+        return new exports.QuerySet({
+          modelManager: this
+        }).each(callback);
       },
 
+      load: function(filter, callback) {
+        exports.Model.getStorageAdaptor().load(this.modelClass, filter, callback);
 
-
-
-
-
-
+        return this;
+      },
 
       // TODO: this is still temporary
       save: function(model, callback) {
-        var models = this.getModels();
-        model.getProperties()['id'] = models.length;
-        models.push(model);
+        exports.Model.getStorageAdaptor().save(model, callback);
 
-        if (callback) {
-          callback(model);
-        }
-        
-
+        return this;
       },
 
       // TODO: allow to be called with only spec or only callback
@@ -184,19 +184,64 @@
         model.save(function(model) {
           callback(model);
         });
+
+        return this;
+      }
+    });
+
+    /**
+     * A basic implementation of a storage adaptor. This one simply
+     * stores models in memory
+     */
+    exports.InMemoryStorageAdaptor = piewpiew.Class({
+      initialize: function() {
+        var models = {};
+
+        this.getModels = function() {
+          return models;
+        }
+      },
+
+      save: function(model, callback) {
+        var modelName = model.modelName;
+        var models    = this.getModels();
+
+        model.getProperties()['id'] = models.length;
+
+        models[modelName] = models[modelName] || [];
+        models[modelName].push(model);
+
+        if (callback) {
+          callback(model);  
+        }        
+
+        return this;
+      },
+
+      load: function(modelClass, criteria, callback) {
+        console.log("load", modelClass.modelName);
+        var models    = this.getModels()[modelClass.modelName] || [];
+
+        // for now we just asynchronously return the array of models
+        // of the appropriate type
+        setTimeout(function() { callback(models.slice(0)); }, 100);
       }
     });
 
     exports.QuerySet = piewpiew.Class({
-      initialize: function() {
+      initialize: function(options) {
         this.results = [];
-        this.operations = []
+        this.operations = [];
+
+        for(var n in options) {
+          this[n] = options[n];
+        }
       },
 
       filter: function(fn) {
         this.operations.push(function(query, callback){
           console.log("filter ", fn);
-
+          
           var results = [];
 
           for(var i = 0, m = query.results.length; i < m; i++) {
@@ -218,7 +263,12 @@
           callback(query.results);
         });
 
-        this.executeQuery();
+        var self = this;
+
+        this.modelManager.load(this.defaultFilter, function(results) {
+          self.results = results;
+          self.executeQuery();
+        });
 
         return this;
       },
@@ -230,7 +280,12 @@
           }          
         });
 
-        this.executeQuery();
+        var self = this;
+
+        this.modelManager.load(this.defaultFilter, function(results) {
+          self.results = results;
+          self.executeQuery();
+        });
 
         return this;
       },

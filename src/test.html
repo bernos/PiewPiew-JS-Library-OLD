@@ -92,6 +92,12 @@
         console.log("q1", result.toJSON());
       });     
 
+      var q3 = p1.objects.filter(function(m){
+        return true;
+      }).each(function(result){
+        console.log("q3", result.toJSON());
+      });     
+
       /*
       so... to make this work, filter(), order() etc... all need to return
       an instance of a class with an api that looks something like...
