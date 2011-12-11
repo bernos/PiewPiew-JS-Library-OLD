@@ -79,6 +79,7 @@
 
       save: function(callback) {
         this.objects.save(this, callback);
+        return this;
       }
 
       // PRIVATE METHODS /////////////////////////////////////////////////////////
@@ -122,6 +123,7 @@
      */
     exports.ModelManager = piewpiew.Class({
       initialize: function(spec) {
+        // Our array of managed models
         var models = [];
 
         this.getModels = function() {
@@ -133,11 +135,47 @@
         }
       },
 
+      // TODO: allow arg to be either a function, or 
+      // some simple kind of object containing matching criteria
+      filter: function(fn) {
+        var q = new exports.QuerySet();
+            q.results = this.getModels().slice(0);
+
+        return q.filter(fn);
+      },
+
+      all: function(callback) {
+        var q = new exports.QuerySet();
+            q.results = this.getModels().slice(0);
+
+        return q.all(callback);
+      },
+
+      each: function(callback) {
+        var q = new exports.QuerySet();
+            q.results = this.getModels().slice(0);
+
+        return q.each(callback);
+      },
+
+
+
+
+
+
+
+
+      // TODO: this is still temporary
       save: function(model, callback) {
         var models = this.getModels();
         model.getProperties()['id'] = models.length;
         models.push(model);
-        callback(model);
+
+        if (callback) {
+          callback(model);
+        }
+        
+
       },
 
       // TODO: allow to be called with only spec or only callback
@@ -146,6 +184,67 @@
         model.save(function(model) {
           callback(model);
         });
+      }
+    });
+
+    exports.QuerySet = piewpiew.Class({
+      initialize: function() {
+        this.results = [];
+        this.operations = []
+      },
+
+      filter: function(fn) {
+        this.operations.push(function(query, callback){
+          console.log("filter ", fn);
+
+          var results = [];
+
+          for(var i = 0, m = query.results.length; i < m; i++) {
+            if (fn(query.results[i])) {
+              results.push(query.results[i]);
+            }
+          }
+
+          query.results = results;
+
+          setTimeout(function() { callback(query); }, 100);
+        });
+
+        return this;
+      },
+
+      all: function(callback) {
+        this.operations.push(function(query){
+          callback(query.results);
+        });
+
+        this.executeQuery();
+
+        return this;
+      },
+
+      each: function(callback) {
+        this.operations.push(function(query){
+          for(var i = 0, m = query.results.length; i < m; i++) {
+            callback(query.results[i]);
+          }          
+        });
+
+        this.executeQuery();
+
+        return this;
+      },
+
+      executeQuery: function() {
+        console.log("executeQuery", this);
+        var f = this.operations.shift();
+        var q = this;
+
+        if (f) {
+          f(this, function() {
+            q.executeQuery();
+          });
+        }
       }
     });
 

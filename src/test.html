@@ -15,22 +15,14 @@
   <div id="content"></div>
 
   <script type="text/javascript">
-      
+    
+    var p1,p2,p3,p4,p5;
+
     piewpiew.require(["piewpiew.data.model", "piewpiew.data.validators"], function(model, validators) {
       // Test a validator
       console.log("ready");
 
-      var field = new model.CharField({
-        required:true,
-        requiredMessage:"this is required mate",
-        invalidTypeMessage:"string mate, string",
-        validators:{
-          length: new validators.StringValidator({minLength:2, maxLength:4})
-        }
-      });
-
-      console.log(field.validate("a"));
-      console.log(field.constructor);
+      
 
       var Person = model.Model.extend({
         modelName: "Person",
@@ -62,20 +54,98 @@
 
 
 
-      var p = new Person();
-      console.log(p);
-      p.setFirstName("brendan");
-      p.setLastName("mcmahon");
-      console.log(p.getFullName());
-     
+      p1 = new Person({
+        firstName:"brendan",
+        lastName:"mcmahon"
+      }).save();
 
-      p.save(function(model){
-        console.log("SAVED MODEL ", model.toJSON());
-      });
+      p2 = new Person({
+        firstName:"jacinta",
+        lastName:"minchinton"
+      }).save();
 
-      p.objects.create({}, function(model) {
-        console.log("Created model ", model.toJSON());
-      });
+      p3 = new Person({
+        firstName:"john",
+        lastName:"smith"
+      }).save();
+
+      p4 = new Person({
+        firstName:"tim",
+        lastName:"jones"
+      }).save();
+
+      p5 = new Person({
+        firstName:"tony",
+        lastName:"connel"
+      }).save();
+
+      
+      var q1 = p1.objects.filter(function(m){
+        return m.getFirstName() == "brendan";
+      }).each(function(result){
+        console.log("q1", result.toJSON());
+      });     
+
+      var q2 = p1.objects.filter(function(m){
+        return m.getFirstName() == "jacinta";
+      }).each(function(result){
+        console.log("q1", result.toJSON());
+      });     
+
+      /*
+      so... to make this work, filter(), order() etc... all need to return
+      an instance of a class with an api that looks something like...
+
+      {
+        filter: function
+        order: function
+        all: function
+        each: function
+      }
+
+      lets call this a queryset...
+
+      queryset contains an internal result array containing references back
+      to the models in the modelmanager
+
+      each method pushes itself onto a pendigOperations stack member property
+      of the queryset object
+
+      each method returns a reference to the queryset itself to allow for 
+      method chaining
+
+      calling all() or each() triggers a chain reaction of calls to each of
+      the pending operations
+
+      each pendingOperation runs, then asynchronously calls the next pendingop
+      via callback
+
+      filter = function(options) {
+        this.pendingOperations.push(function(results, callback){
+          // filter results, using options call callback...
+        });
+      }
+
+      all = function(cb) {
+        this.pendingOperactions.push(results, callback) {
+          cb(results)
+        }
+        this.processPendingOperations();
+      }
+
+      processPendingOperations: function() {
+        var f = this.pendingOperations.shift();
+        // call the function, passing internal results and
+        // a callback to call processPendingOperations again
+        f(this.results, function() { this.processPendingOperations() });
+      }
+
+
+
+
+
+
+      */
 
       
     })

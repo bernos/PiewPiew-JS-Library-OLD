@@ -169,7 +169,7 @@
 
         this._isChanging = false;
 
-        this.onChanged(changes);
+        this.onChanged();
     
         return this;     
       },
