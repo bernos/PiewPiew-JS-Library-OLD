@@ -78,23 +78,18 @@
       }).save();
 
       
-      var q1 = Person.objects.filter(function(m){
-        return m.getFirstName() == "brendan";
+      var q1 = Person.objects.filter({
+        firstName: "brendan"
       }).each(function(result){
         console.log("q1", result.toJSON());
       });     
 
-      var q2 = Person.objects.filter(function(m){
-        return m.getFirstName() == "jacinta";
+      var q2 = Person.objects.filter({
+        firstName__exact: "jacinta"
       }).each(function(result){
         console.log("q2", result.toJSON());
       });     
-
-      var q3 = Person.objects.filter(function(m){
-        return true;
-      }).each(function(result){
-        console.log("q3", result.toJSON());
-      });     
+    
 
       /*
       so... to make this work, filter(), order() etc... all need to return

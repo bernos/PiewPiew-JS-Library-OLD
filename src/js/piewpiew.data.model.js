@@ -120,6 +120,9 @@
      */
     var adaptor = null;
 
+    /**
+     * Get the active storage adaptor
+     */
     exports.Model.getStorageAdaptor = function() {
       if (!adaptor) {
         this.setStorageAdaptor(new exports.InMemoryStorageAdaptor());
@@ -127,6 +130,10 @@
       return adaptor;
     };
 
+    /**
+     * Set the active storage adaptor. Allows for the creation and use of custom
+     * storage adaptors.
+     */
     exports.Model.setStorageAdaptor = function(newAdaptor) {
       adaptor = newAdaptor;
       return this
@@ -147,10 +154,18 @@
 
       // TODO: allow arg to be either a function, or 
       // some simple kind of object containing matching criteria
-      filter: function(callback) {
+      filter: function(lookups) {
+
+        // Assign the lookups arg as the "defaultFilter" of the new
+        // QuerySet. This filter will get passed to the StorageAdaptor when it
+        // loads Models at the begining of the Query process. Doing this means
+        // that the storage adaptor can potentially perform a more efficient load
+        // as it can use the default filter to load only the models we are 
+        // interested in.
         return new exports.QuerySet({
+          defaultFilter: lookups,
           modelManager: this
-        }).filter(callback);
+        }).filter(lookups);
       },
 
       all: function(callback) {
@@ -218,7 +233,7 @@
         return this;
       },
 
-      load: function(modelClass, criteria, callback) {
+      load: function(modelClass, lookups, callback) {
         console.log("load", modelClass.modelName);
         var models    = this.getModels()[modelClass.modelName] || [];
 
@@ -228,6 +243,38 @@
       }
     });
 
+    /**
+     * Object to hold all our FieldLookup functions. Keeping them here
+     * avoids the overhead of each QuerySet carrying around their own copies
+     * Also we could add new lookup functions very easily by adding them to
+     * this object
+     *
+     * field__exact
+     * field__iexact
+     * field__contains
+     * field__icontains
+     * field__in
+     * field__gt
+     * field__gte
+     * field__lt
+     * field__lte 
+     * field__endswith
+     * field__iendswith
+     * field__startswith
+     * field__istartswith
+     * field__regex
+     */
+    exports.FieldLookups = {
+      field__exact: function(value, criteria) {
+        console.log("field__exact", value, criteria);
+        return value == criteria;
+      }
+    }
+
+  
+    /**
+     * QuerySet class.
+     */
     exports.QuerySet = piewpiew.Class({
       initialize: function(options) {
         this.results = [];
@@ -238,15 +285,47 @@
         }
       },
 
-      filter: function(fn) {
+      
+
+
+
+      /**
+       *
+       * field__exact
+       * field__iexact
+       * field__contains
+       * field__icontains
+       * field__in
+       * field__gt
+       * field__gte
+       * field__lt
+       * field__lte 
+       * field__endswith
+       * field__iendswith
+       * field__startswith
+       * field__istartswith
+       * field__regex
+       */
+      filter: function(lookups) {
         this.operations.push(function(query, callback){
-          console.log("filter ", fn);
+          console.log("filter ", lookups);
           
           var results = [];
 
           for(var i = 0, m = query.results.length; i < m; i++) {
-            if (fn(query.results[i])) {
-              results.push(query.results[i]);
+            for(var l in lookups) {
+              var tokens  = l.split("__");
+              var getter  = "get" + tokens[0].slice(0,1).toUpperCase() + tokens[0].slice(1);
+              var value   = query.results [i][getter]();
+
+              // If the lookup was in the form field__lookup, then we'll call the relevant
+              // lookup function, otherwise assume we are using "__exact"
+              if ((tokens.length == 2 && exports.FieldLookups['field__' + tokens[1]](value, lookups[l])) || 
+                  (tokens.length == 1 && exports.FieldLookups['field__exact'](value, lookups[l]))) 
+              {
+                results.push(query.results[i]);
+                break;
+              }               
             }
           }
 
