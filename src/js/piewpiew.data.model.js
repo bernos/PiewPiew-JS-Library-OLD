@@ -78,7 +78,7 @@
       },
 
       save: function(callback) {
-        this.objects.save(this, callback);
+        this.constructor.objects.save(this, callback);
         return this;
       }
 
@@ -104,7 +104,7 @@
       // Create a ModelManager for this model class. Attaching the Manager to the
       // prototype ensures that all instances of this model will refer to the same
       // model
-      klass.prototype.objects = new exports.ModelManager({
+      klass.objects = new exports.ModelManager({
         modelClass: klass
       });      
 

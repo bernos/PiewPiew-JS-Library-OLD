@@ -52,7 +52,7 @@
         
       });
 
-
+console.log("asdf");
 
       p1 = new Person({
         firstName:"brendan",
@@ -80,19 +80,19 @@
       }).save();
 
       
-      var q1 = p1.objects.filter(function(m){
+      var q1 = Person.objects.filter(function(m){
         return m.getFirstName() == "brendan";
       }).each(function(result){
         console.log("q1", result.toJSON());
       });     
 
-      var q2 = p1.objects.filter(function(m){
+      var q2 = Person.objects.filter(function(m){
         return m.getFirstName() == "jacinta";
       }).each(function(result){
-        console.log("q1", result.toJSON());
+        console.log("q2", result.toJSON());
       });     
 
-      var q3 = p1.objects.filter(function(m){
+      var q3 = Person.objects.filter(function(m){
         return true;
       }).each(function(result){
         console.log("q3", result.toJSON());
